@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Nest;
 using Xunit;
 
-using NCI.OCPL.Utils.Testing;
+using NCI.OCPL.Api.Common.Testing;
 
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
@@ -251,7 +251,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 
             //Setup the client with the request handler callback to be executed later.
             IElasticClient client =
-                ElasticTools.GetMockedSearchTemplateClient<Suggestion>(
+                Utils.Testing.ElasticTools.GetMockedSearchTemplateClient<Suggestion>(
                     req => actualReq = req,
                     resMock => {
                         //Make sure we say that the response is valid.
@@ -285,7 +285,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.Equal(
                 expReq,
                 actualReq,
-                new ElasticTools.SearchTemplateRequestComparer()
+                new Utils.Testing.ElasticTools.SearchTemplateRequestComparer()
             );
         }
 
