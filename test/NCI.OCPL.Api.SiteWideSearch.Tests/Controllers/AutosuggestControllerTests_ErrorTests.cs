@@ -2,10 +2,11 @@
 
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
+
 using Xunit;
 
-using NCI.OCPL.Utils.Testing;
-
+using NCI.OCPL.Api.Common;
+using NCI.OCPL.Api.Common.Testing;
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
@@ -64,7 +65,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         public void Get_EmptyCollection_ReturnsError(String collectionValue)
         {
             // The file needs to exist so it can be deserialized, but we don't make
-            // use of the actual content. 
+            // use of the actual content.
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
@@ -84,7 +85,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
                     )
                 );
 
-            // Search without a collection should report bad request (400) 
+            // Search without a collection should report bad request (400)
             Assert.Equal(400, ((APIErrorException)ex).HttpStatusCode);
         }
 
@@ -123,7 +124,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
                     )
                 );
 
-            // Search without something to search for should report bad request (400) 
+            // Search without something to search for should report bad request (400)
             Assert.Equal(400, ((APIErrorException)ex).HttpStatusCode);
         }
 
@@ -160,7 +161,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
                     )
                 );
 
-            // Search without something to search for should report bad request (400) 
+            // Search without something to search for should report bad request (400)
             Assert.Equal(400, ((APIErrorException)ex).HttpStatusCode);
         }
 

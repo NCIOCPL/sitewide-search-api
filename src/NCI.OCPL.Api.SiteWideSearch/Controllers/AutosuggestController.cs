@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 
 using Nest;
 
+using NCI.OCPL.Api.Common;
+
 namespace NCI.OCPL.Api.SiteWideSearch.Controllers
 {
     /// <summary>
