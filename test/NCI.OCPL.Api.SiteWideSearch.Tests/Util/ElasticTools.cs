@@ -1,13 +1,10 @@
 using System;
-using System.IO;
-using System.Reflection;
 
-using Elasticsearch.Net;
 using Nest;
-using Newtonsoft.Json.Linq;
 
 using Moq;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace NCI.OCPL.Utils.Testing
 {
@@ -53,19 +50,20 @@ namespace NCI.OCPL.Utils.Testing
             elasticClientMock
                 // Handle the condition where this code should run
                 .Setup(
-                    ec => ec.SearchTemplate(
-                        It.IsAny<Func<SearchTemplateDescriptor<T>, ISearchTemplateRequest>>()
+                    ec => ec.SearchTemplateAsync(
+                        It.IsAny<Func<SearchTemplateDescriptor<T>, ISearchTemplateRequest>>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 // Give a callback for the mocked signature.  This will store off the request.
                 // This is a little inside baseball, but the invoking of the anon function below is taken from
                 // how the Nest code will execute the search based on the above mocked call.
                 // https://github.com/elastic/elasticsearch-net/blob/master/src/Nest/Search/SearchTemplate/ElasticClient-SearchTemplate.cs
-                .Callback<Func<SearchTemplateDescriptor<T>,ISearchTemplateRequest>>(
-                    sd => {
+                .Callback<Func<SearchTemplateDescriptor<T>,ISearchTemplateRequest>, CancellationToken>(
+                    (sd, ct) => {
                         ISearchTemplateRequest savedTemplateRequest;
                         savedTemplateRequest = sd?.Invoke(new SearchTemplateDescriptor<T>());
-//throw new Exception(JObject.FromObject(savedTemplateRequest).ToString());
+
                         //Call the callback so that the calling function can save the searchrequest
                         //for comparing once the IElasticClient.SearchTemplate function has executed.
                         if (requestInspectorCallback != null) {
@@ -74,7 +72,7 @@ namespace NCI.OCPL.Utils.Testing
                     }
                 )
                 // Return something from our method.
-                .Returns(mockResponse.Object);
+                .ReturnsAsync(mockResponse.Object);
 
             return elasticClientMock.Object;
         }

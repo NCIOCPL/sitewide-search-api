@@ -1,25 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
-using Nest;
-using Elasticsearch.Net;
-using System.Text;
-using NSwag.AspNetCore;
-using System.Reflection;
-using NJsonSchema;
 
 using NCI.OCPL.Api.Common;
-
+using NCI.OCPL.Api.SiteWideSearch.Services;
 
 namespace NCI.OCPL.Api.SiteWideSearch
 {
@@ -57,6 +43,9 @@ namespace NCI.OCPL.Api.SiteWideSearch
         {
             services.Configure<SearchIndexOptions>(Configuration.GetSection("SearchIndexOptions"));
             services.Configure<AutosuggestIndexOptions>(Configuration.GetSection("AutosuggestIndexOptions"));
+
+            services.AddTransient<IAutosuggestQueryService, ESAutosuggestQueryService>();
+            services.AddTransient<ISearchQueryService, ESSearchQueryService>();
         }
 
 
