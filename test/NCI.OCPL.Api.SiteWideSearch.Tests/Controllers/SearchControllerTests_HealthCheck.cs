@@ -1,18 +1,19 @@
-﻿using Microsoft.Extensions.Logging.Testing;
-using Xunit;
-
-
-using NCI.OCPL.Api.SiteWideSearch.Controllers;
-using NCI.OCPL.Api.Common;
-using Moq;
 using System;
 
-namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
+using Microsoft.Extensions.Logging.Testing;
+
+using Moq;
+using Xunit;
+
+using NCI.OCPL.Api.Common;
+using NCI.OCPL.Api.SiteWideSearch.Controllers;
+
+namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
 {
     /// <summary>
-    /// Tests for the Autosuggest Controller's healthcheck endpoint
+    /// Tests for the Search Controller's healthcheck endpoint
     /// </summary>
-    public class AutosuggestControllerTests_HealthCheck
+    public class SearchControllerTests_HealthCheck
     {
         /// <summary>
         /// Verify the GetStatus method responds correctly when the service outright fails.
@@ -20,22 +21,22 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [Fact]
         public async void GetStatus_ServiceFail()
         {
-            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
                 svc => svc.GetIsHealthy()
             )
             .ThrowsAsync(new Exception("Any exception at all."));
 
-            AutosuggestController ctrl = new AutosuggestController(
-                NullLogger<AutosuggestController>.Instance,
+            SearchController ctrl = new SearchController(
+                NullLogger<SearchController>.Instance,
                 querySvc.Object
             );
 
-            APIErrorException ex = await Assert.ThrowsAsync<APIErrorException>(
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 () => ctrl.GetStatus()
             );
 
-            Assert.Equal(500, ex.HttpStatusCode);
+            Assert.Equal(500, ((APIErrorException)ex).HttpStatusCode);
         }
 
         /// <summary>
@@ -44,19 +45,19 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [Fact]
         public async void GetStatus_Healthy()
         {
-            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
                 svc => svc.GetIsHealthy()
             )
             .ReturnsAsync(true);
 
-            AutosuggestController ctrl = new AutosuggestController(
-                NullLogger<AutosuggestController>.Instance,
+            SearchController ctrl = new SearchController(
+                NullLogger<SearchController>.Instance,
                 querySvc.Object
             );
 
             string status = await ctrl.GetStatus();
-            Assert.Equal(AutosuggestController.HEALTHY_STATUS, status);
+            Assert.Equal(SearchController.HEALTHY_STATUS, status);
         }
 
         /// <summary>
@@ -65,23 +66,23 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [Fact]
         public async void GetStatus_Unhealthy()
         {
-            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
                 svc => svc.GetIsHealthy()
             )
             .ReturnsAsync(false);
 
-            AutosuggestController ctrl = new AutosuggestController(
-                NullLogger<AutosuggestController>.Instance,
+            SearchController ctrl = new SearchController(
+                NullLogger<SearchController>.Instance,
                 querySvc.Object
             );
 
-            APIErrorException ex = await Assert.ThrowsAsync<APIErrorException>(
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 () => ctrl.GetStatus()
             );
 
-            Assert.Equal(500, ex.HttpStatusCode);
-            Assert.Equal(AutosuggestController.UNHEALTHY_STATUS, ex.Message);
+            Assert.Equal(500, ((APIErrorException)ex).HttpStatusCode);
+            Assert.Equal(SearchController.UNHEALTHY_STATUS, ex.Message);
         }
 
     }

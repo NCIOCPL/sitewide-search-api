@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-
 using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.Options;
 
-using Nest;
+using Moq;
 using Xunit;
-
-using NCI.OCPL.Api.Common.Testing;
 
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
@@ -38,61 +33,57 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
     /// Defines a class with all of the data mapping tests to ensure we are able to correctly
     /// map the responses from ES into the correct response from the AutosuggestController
     /// </summary>
-    public class Get_DataMapTests : AutosuggestTests_Base
+    public class Get_DataMapTests
     {
-
         /// <summary>
-        /// Helper method to build a SearchTemplateRequest for testing purposes.
+        /// Simulated Autosuggest query service response to the keyword "breast".
         /// </summary>
-        /// <param name="index">The index to fetch from</param>
-        /// <param name="fileName">The template fileName to use</param>
-        /// <param name="term">The search term we are looking for</param>
-        /// <param name="size">The result set size</param>
-        /// <param name="fields">The fields we are requesting</param>
-        /// <param name="site">The sites to filter the results by</param>
-        /// <returns>A SearchTemplateRequest</returns>
-        private SearchTemplateRequest<T> GetSearchRequest<T>(
-            string index,
-            string fileName,
-            string term,
-            int size,
-            string fields,
-            string site
-            ) where T : class {
-
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
-            SearchTemplateRequest<T> expReq = new SearchTemplateRequest<T>(index){
-                File = fileName
-            };
-#pragma warning restore CS0618
-
-            expReq.Params = new Dictionary<string, object>();
-            expReq.Params.Add("searchstring", term);
-            expReq.Params.Add("my_size", size);
-
-            return expReq;
-        }
+        private Suggestions BreastCancerAutoSuggest_English_Return =>
+            new Suggestions(
+                222,
+                new Suggestion[]
+                {
+                    new Suggestion(){Term = "breast cancer"},
+                    new Suggestion(){Term = "breast"},
+                    new Suggestion(){Term = "inflammatory breast cancer"},
+                    new Suggestion(){Term = "metastatic breast cancer"},
+                    new Suggestion(){Term = "male breast cancer"},
+                    new Suggestion(){Term = "types of breast cancer"},
+                    new Suggestion(){Term = "breast cancer risk"},
+                    new Suggestion(){Term = "understanding breast changes"},
+                    new Suggestion(){Term = "breast cancer statistics"},
+                    new Suggestion(){Term = "breast cancer screening"},
+                    new Suggestion(){Term = "breast cancer staging"},
+                    new Suggestion(){Term = "breast changes"},
+                    new Suggestion(){Term = "breast reconstruction"},
+                    new Suggestion(){Term = "breast cancer prevention"},
+                    new Suggestion(){Term = "breast cancer treatment"},
+                    new Suggestion(){Term = "Breast Cancer Risk Assessment Tool"},
+                    new Suggestion(){Term = "stages of breast cancer"},
+                    new Suggestion(){Term = "breast cancer risk assessment"},
+                    new Suggestion(){Term = "breast cancer risk tool"},
+                    new Suggestion(){Term = "breast cancer symptoms"}
+                });
 
         [Fact]
         /// <summary>
         /// Test that the list of results exists.
         /// </summary>
-        public void Check_Results_Exist()
+        public async void Check_Results_Exist()
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -106,19 +97,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Test that the search results at arbitrary offsets
         /// in the collection are present
         /// </summary>
-        public void Check_Results_Present()
+        public async void Check_Results_Present()
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -131,19 +124,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// <summary>
         /// Test that the list of returned results has the right number of items.
         /// </summary>
-        public void Check_Result_Count()
+        public async void Check_Result_Count()
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -157,19 +152,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// <summary>
         /// Test that the first result contains the expected string.
         /// </summary>
-        public void Check_First_Result()
+        public async void Check_First_Result()
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -189,19 +186,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// </summary>
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
-        public void Check_Arbitrary_Result(int offset, string expectedTerm)
+        public async void Check_Arbitrary_Result(int offset, string expectedTerm)
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -214,19 +213,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// <summary>
         /// Test for Breast Cancer search string and ensures Total is mapped correctly.
         /// </summary>
-        public void Has_Correct_Total()
+        public async void Has_Correct_Total()
         {
-            string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .ReturnsAsync(BreastCancerAutoSuggest_English_Return);
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
             //Parameters don't matter in this case...
-            Suggestions results = ctrl.Get(
+            Suggestions results = await ctrl.Get(
                 "cgov",
                 "en",
                 "breast cancer"
@@ -235,61 +236,6 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.Equal(222, results.Total);
         }
 
-        // TODO: Add tests for varying the various parameters.
-        // TODO: Move Check_For_Correct_Request_Data() and variants
-        //       to a separate class
-
-        [Fact]
-        /// <summary>
-        /// Verify that the request sent to ES for a single term is being set up correctly.
-        /// </summary>
-        public void Check_For_Correct_Request_Data()
-        {
-            string term = "Breast Cancer";
-
-            ISearchTemplateRequest actualReq = null;
-
-            //Setup the client with the request handler callback to be executed later.
-            IElasticClient client =
-                Utils.Testing.ElasticTools.GetMockedSearchTemplateClient<Suggestion>(
-                    req => actualReq = req,
-                    resMock => {
-                        //Make sure we say that the response is valid.
-                        resMock.Setup(res => res.IsValid).Returns(true);
-                    } // We don't care what the response looks like.
-                );
-
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
-            AutosuggestController controller = new AutosuggestController(
-                client,
-                config,
-                NullLogger<AutosuggestController>.Instance
-            );
-
-            //NOTE: this is when actualReq will get set.
-            controller.Get(
-                "cgov",
-                "en",
-                term
-            );
-
-            SearchTemplateRequest<Suggestion> expReq = GetSearchRequest<Suggestion>(
-                "cgov",                 // Search index to look in.
-                "autosg_suggest_cgov_en",  // Template name, preceded by the name of the directory it's stored in.
-                term,                   // Search term
-                10,                     // Max number of records to retrieve.
-                "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"",
-                "all"
-            );
-
-            Assert.Equal(
-                expReq,
-                actualReq,
-                new Utils.Testing.ElasticTools.SearchTemplateRequestComparer()
-            );
-        }
-
     }
-
 
 }

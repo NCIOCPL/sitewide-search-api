@@ -23,9 +23,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         // Static to limit to a single instance (can't do const for non-scalar types)
         static readonly string[] validLanguages = { "en", "es" };
 
-        private readonly IElasticClient _elasticClient;
-        private readonly SearchIndexOptions _indexConfig;
         private readonly ILogger<SearchController> _logger;
+        private readonly ISearchQueryService _searchQueryService;
 
         /// <summary>
         /// Message to return for a "healthy" status.
@@ -33,18 +32,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         public const string HEALTHY_STATUS = "alive!";
 
         /// <summary>
+        /// Message to return for an "unhealthy" status.
+        /// </summary>
+        public const string UNHEALTHY_STATUS = "Service not healthy.";
+
+        /// <summary>
         /// Creates a new instance of a Search Controller
         /// </summary>
-        /// <param name="elasticClient">An instance of an IElasticClient to use for connecting to the ElasticSearch cluster.</param>
-        /// <param name="config">The search configuration.</param>
         /// <param name="logger">An instance of a ILogger to use for logging messages.</param>
-        public SearchController(IElasticClient elasticClient,
-            IOptions<SearchIndexOptions> config,
-            ILogger<SearchController> logger)
+        /// <param name="service">Instance of the query service.</param>
+        public SearchController(
+            ILogger<SearchController> logger,
+            ISearchQueryService service)
         {
-            _elasticClient = elasticClient;
-            _indexConfig = config.Value;
             _logger = logger;
+            _searchQueryService = service;
         }
 
         // GET search/cgov/en/lung+cancer
@@ -59,7 +61,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         /// <param name="site">An optional parameter used to limit the number of items returned based on site.</param>
         /// <returns>A SiteWideSearchResults collection object</returns>
         [HttpGet("{collection}/{language}/{*term}")]
-        public SiteWideSearchResults Get(
+        public async Task<SiteWideSearchResults> Get(
             string collection,
             string language,
             string term = null,
@@ -92,43 +94,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             // Term comes from from a catch-all parameter, so make sure it's been decoded.
             term = WebUtility.UrlDecode(term);
 
-            // Setup our template name based on the collection name.  Template name is the directory the
-            // file is stored in, an underscore, the template name prefix (search), an underscore,
-            // the name of the collection (only "cgov" or "doc" at this time), another underscore and then
-            // the language code (either "en" or "es").
-            string templateName = String.Format("cgov_search_{0}_{1}", collection, language);
-
-            //TODO: Make this a parameter that can take in a list of fields and turn them
-            //into this string.
-            // Setup the list of fields we want ES to return.
-            string fields = "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"";
-
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
-            //thios Can throw exception
-            var response = _elasticClient.SearchTemplate<SiteWideSearchResult>(sd => sd
-                .Index(_indexConfig.AliasName)
-                .File(templateName)
-                .Params(pd => pd
-                    .Add("my_value", term)
-                    .Add("my_size", size)
-                    .Add("my_from", from)
-                    .Add("my_fields", fields)
-                    .Add("my_site", site)
-                )
-            );
-#pragma warning restore CS0618
-
-            if (response.IsValid) {
-                return new SiteWideSearchResults(
-                    response.Total,
-                    response.Documents
-                );
-
-            } else {
-                throw new APIErrorException(500, "Error connecting to search servers");
+            try
+            {
+                return await _searchQueryService.Get(collection,language,term, from,size,site);
+            }
+            catch(Exception)
+            {
+                throw new APIErrorException(500, "errors occured.");
             }
         }
 
@@ -141,37 +113,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         /// all services are running. If unhealthy services are found, APIErrorException is thrown
         /// with HTTPStatusCode set to 500.</returns>
         [HttpGet("status")]
-        public string GetStatus()
+        public async Task<string> GetStatus()
         {
-            // Use the cluster health API to verify that the Best Bets index is functioning.
-            // Maps to https://ncias-d1592-v.nci.nih.gov:9299/_cluster/health/bestbets?pretty (or other server)
-            //
-            // References:
-            // https://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-health.html
-            // https://github.com/elastic/elasticsearch/blob/master/rest-api-spec/src/main/resources/rest-api-spec/api/cluster.health.json#L20
-            IClusterHealthResponse response = _elasticClient.ClusterHealth(hd =>
+            try
             {
-                hd = hd
-                    .Index("autosg");
-
-                return hd;
-            });
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Error checking ElasticSearch health.");
-                _logger.LogError("Returned debug info: {0}.", response.DebugInformation);
-                throw new APIErrorException(500, "Errors Occurred.");
+                bool isHealthy = await _searchQueryService.GetIsHealthy();
+                if (isHealthy)
+                    return HEALTHY_STATUS;
+                else
+                    throw new APIErrorException(500, UNHEALTHY_STATUS);
             }
-
-            if (response.Status != "green"
-                && response.Status != "yellow")
+            catch (Exception ex)
             {
-                _logger.LogError("Elasticsearch not healthy. Index status is '{0}'.", response.Status);
-                throw new APIErrorException(500, "Service not healthy.");
+                _logger.LogError(ex, "Error checking health.");
+                throw new APIErrorException(500, UNHEALTHY_STATUS);
             }
-
-            return HEALTHY_STATUS;
         }
     }
 }

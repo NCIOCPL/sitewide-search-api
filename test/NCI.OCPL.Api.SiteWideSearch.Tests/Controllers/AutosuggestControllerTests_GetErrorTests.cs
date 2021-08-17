@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
+using Moq;
 using Xunit;
 
 using NCI.OCPL.Api.Common;
@@ -12,35 +13,35 @@ using NCI.OCPL.Api.SiteWideSearch.Controllers;
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 {
     /// <summary>
-    /// Tests for the AutosuggestController error behavior.
-    /// <remarks>
-    /// </remarks>
+    /// Tests for the <see cref="M:NCI.OCPL.Api.SiteWideSearch.Controllers.AutosuggestController.Get" />
+    /// error behavior.
     /// </summary>
-    public class AutosuggestControllerTests_ErrorTests : AutosuggestTests_Base
+    public class AutosuggestControllerTests_GetErrorTests
     {
 
-
-        [Theory]
-        [InlineData(403)] // Forbidden
-        [InlineData(404)] // Not Found
-        [InlineData(500)] // Server error
+        [Fact]
         /// <summary>
         /// Verify that controller throws the correct exception when the
-        /// ES client reports an error.
+        /// ES client encounters an error.
         /// </summary>
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
-        public void Handle_Failed_Query(int errorCode)
+        public async void Handle_Failed_Query()
         {
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())
+            )
+            .Throws(new APIInternalException("Internal error"));
+
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetErrorElasticClient(errorCode),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
-            Assert.Throws<APIErrorException>(
-                // Parameters don't matter, and for this test we don't care about saving the results
+            // Parameters don't matter, and for this test we don't care about saving the results.
+            // Just verify we're responding with APIErrorException and status 500.
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 () =>
                     ctrl.Get(
                         "cgov",
@@ -48,6 +49,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
                         "breast cancer"
                     )
                 );
+            Assert.Equal(500, ((APIErrorException)ex).HttpStatusCode);
         }
 
 
@@ -62,20 +64,17 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify that controller throws the correct exception when no collection is specified.
         /// </summary>
         /// <param name="collectionValue">A string specifying the collection to search.</param>
-        public void Get_EmptyCollection_ReturnsError(String collectionValue)
+        public async void Get_EmptyCollection_ReturnsError(String collectionValue)
         {
-            // The file needs to exist so it can be deserialized, but we don't make
-            // use of the actual content.
-            string testFile = "Search.CGov.En.BreastCancer.json";
+            // No setup, because we don't expect anything to actually be invoked.
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
-            Exception ex = Assert.Throws<APIErrorException>(
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 // Parameters don't matter, and for this test we don't care about saving the results
                 () =>
                     ctrl.Get(
@@ -103,18 +102,17 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify that controller throws the correct exception when an invalid language   is specified.
         /// </summary>
         /// <param name="termValue">A string the text to search for.</param>
-        public void Get_InvalidLanguage_ReturnsError(string language)
+        public async void Get_InvalidLanguage_ReturnsError(string language)
         {
-            string testFile = "Search.CGov.En.BreastCancer.json";
+            // No setup, because we don't expect anything to actually be invoked.
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
-            Exception ex = Assert.Throws<APIErrorException>(
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 // Parameters don't matter, and for this test we don't care about saving the results
                 () =>
                     ctrl.Get(
@@ -140,18 +138,17 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify that controller throws the correct exception when no search text is specified.
         /// </summary>
         /// <param name="termValue">A string the text to search for.</param>
-        public void Get_EmptyTerm_ReturnsError(String termValue)
+        public async void Get_EmptyTerm_ReturnsError(String termValue)
         {
-            string testFile = "Search.CGov.En.BreastCancer.json";
+            // No setup, because we don't expect anything to actually be invoked.
+            Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
 
-            IOptions<AutosuggestIndexOptions> config = GetMockedAutosuggestIndexOptions();
             AutosuggestController ctrl = new AutosuggestController(
-                ElasticTools.GetInMemoryElasticClient(testFile),
-                config,
-                NullLogger<AutosuggestController>.Instance
+                NullLogger<AutosuggestController>.Instance,
+                querySvc.Object
             );
 
-            Exception ex = Assert.Throws<APIErrorException>(
+            Exception ex = await Assert.ThrowsAsync<APIErrorException>(
                 // Parameters don't matter, and for this test we don't care about saving the results
                 () =>
                     ctrl.Get(
