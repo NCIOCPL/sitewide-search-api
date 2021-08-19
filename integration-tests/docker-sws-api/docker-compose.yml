@@ -2,9 +2,8 @@ version: "3.7"
 
 services:
   elasticsearch:
-    image: elasticsearch:5.6.16
+    image: elasticsearch:7.9.2
     volumes:
-      - ./elasticsearch/scripts:/usr/share/elasticsearch/config/scripts
       - ./elasticsearch/synonym.txt:/usr/share/elasticsearch/config/synonym.txt
     # All of the ES settings can be set via the environment vars.
     environment:

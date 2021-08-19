@@ -37,19 +37,17 @@
     }
   },
   "mappings": {
-    "terms": {
-      "properties": {
-        "term": {
-          "type": "text",
-          "analyzer": "autocomplete_index",
-          "search_analyzer": "autocomplete_search"
-        },
-        "language": {
-          "type": "keyword"
-        },
-        "weight": {
-          "type": "long"
-        }
+    "properties": {
+      "term": {
+        "type": "text",
+        "analyzer": "autocomplete_index",
+        "search_analyzer": "autocomplete_search"
+      },
+      "language": {
+        "type": "keyword"
+      },
+      "weight": {
+        "type": "long"
       }
     }
   }

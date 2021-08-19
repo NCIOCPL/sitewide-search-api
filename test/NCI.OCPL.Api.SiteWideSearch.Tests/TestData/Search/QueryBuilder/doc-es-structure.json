@@ -1,0 +1,37 @@
+{
+    "bool": {
+        "filter": [
+            { "term": { "metatag.content-language": { "value": "es" } } }
+        ],
+        "must": [
+            {
+                "bool": {
+                    "must": [
+                        { "exists": { "field": "searchtitle" } },
+                        { "prefix": { "searchurl.raw": { "value": "www-test-acsf.cancer.gov/rare-brain-spine-tumor/espanol" } } }
+                    ]
+                }
+            },
+            {
+                "bool": {
+                    "should": [
+                        { "match": { "content.es": { "operator": "and", "query": "pollo", "boost": 1.0 } } },
+                        { "match": { "searchtitle.es": { "query": "pollo", "boost": 1.0 } } },
+                        { "match": { "searchurl.es": { "query": "pollo", "boost": 1.0 } } },
+                        { "match_phrase": { "content.es": { "query": "pollo", "boost": 1.0 } } },
+                        {
+                            "bool": {
+                                "should": [
+                                    { "match": { "metatag.description.es": { "query": "pollo", "boost": 0.01 } } }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "should": [
+            { "term": { "type": { "value": "text/html", "boost": 1.0 } } }
+        ]
+    }
+}

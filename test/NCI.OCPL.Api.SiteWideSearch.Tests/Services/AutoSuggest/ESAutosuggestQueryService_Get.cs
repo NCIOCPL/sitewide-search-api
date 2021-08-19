@@ -1,16 +1,18 @@
 using System;
+using System.Text;
+using System.IO;
+
+using Microsoft.Extensions.Logging.Testing;
 
 using Elasticsearch.Net;
 using Nest;
+using Nest.JsonNetSerializer;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
-using Microsoft.Extensions.Logging.Testing;
 using NCI.OCPL.Api.Common;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
-using Microsoft.Extensions.Options;
+
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
@@ -35,7 +37,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, MockAutoSuggestOptions, new NullLogger<ESAutosuggestQueryService>());
@@ -62,7 +64,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, MockAutoSuggestOptions, new NullLogger<ESAutosuggestQueryService>());
@@ -73,64 +75,60 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             );
         }
 
-        // TODO: Add tests for varying the various parameters.
-        // TODO: Rewrite Check_For_Correct_Request_Data() and variants
-        //       to not do templates.
-
-        /// <summary>
-        /// Helper method to build a SearchTemplateRequest for testing purposes.
-        /// </summary>
-        /// <param name="index">The index to fetch from</param>
-        /// <param name="fileName">The template fileName to use</param>
-        /// <param name="term">The search term we are looking for</param>
-        /// <param name="size">The result set size</param>
-        /// <param name="fields">The fields we are requesting</param>
-        /// <param name="site">The sites to filter the results by</param>
-        /// <returns>A SearchTemplateRequest</returns>
-        private SearchTemplateRequest<T> GetSearchRequest<T>(
-            string index,
-            string fileName,
-            string term,
-            int size,
-            string fields,
-            string site
-            ) where T : class {
-
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
-            SearchTemplateRequest<T> expReq = new SearchTemplateRequest<T>(index){
-                File = fileName
-            };
-#pragma warning restore CS0618
-
-            expReq.Params = new Dictionary<string, object>();
-            expReq.Params.Add("searchstring", term);
-            expReq.Params.Add("my_size", size);
-
-            return expReq;
-        }
 
         /// <summary>
         /// Verify that the request sent to ES for a single term is being set up correctly.
         /// </summary>
-        [Fact]
-        public async void Check_For_Correct_Request_Data()
+        [Theory]
+        [InlineData("en", "Breast Cancer")]
+        [InlineData("es", "Cáncer de seno")]
+        [InlineData("en", " ")]
+        [InlineData("es", "    \n ")]
+        [InlineData("es", "    \t ")]
+        [InlineData("", "")]
+        [InlineData("\t", "")]
+        public async void Check_For_Correct_Request_Data(string language, string term)
         {
-            string term = "Breast Cancer";
+            string expectedPath = "/autosg/_search";
+            string expectedContentType = "application/json";
+            HttpMethod expectedMethod = HttpMethod.POST;
+            JObject expectedBody = JObject.Parse(@"
+{
+    ""query"": {
+                ""bool"": {
+                    ""filter"": [ { ""term"": { ""language"": { ""value"": """ + language + @""" } } } ],
+            ""must"": [ { ""match"": { ""term"": { ""query"": """ + term + @""" } } } ]
+        }
+            },
+    ""size"": 25,
+    ""sort"": [ { ""weight"": { ""order"": ""desc"" } } ],
+    ""_source"": { ""includes"": [ ""term"" ] }
+}");
 
-            ISearchTemplateRequest actualReq = null;
+            Uri esURI = null;
+            string esContentType = String.Empty;
+            HttpMethod esMethod = HttpMethod.DELETE; // Basically, something other than the expected value.
 
-            //Setup the client with the request handler callback to be executed later.
-            IElasticClient client =
-                Utils.Testing.ElasticTools.GetMockedSearchTemplateClient<Suggestion>(
-                    req => actualReq = req,
-                    resMock => {
-                        //Make sure we say that the response is valid.
-                        resMock.Setup(res => res.IsValid).Returns(true);
-                    } // We don't care what the response looks like.
-                );
+            JToken requestBody = null;
+
+            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
+            conn.RegisterRequestHandlerForType<Nest.SearchResponse<Suggestion>>((req, res) =>
+            {
+                // We don't really care about the response for this test.
+                res.Stream = ElastcsearchTestingTools.MockEmptyResponse;
+                res.StatusCode = 200;
+
+                esURI = req.Uri;
+                esContentType = req.RequestMimeType;
+                esMethod = req.Method;
+                requestBody = conn.GetRequestPost(req);
+            });
+            // The URI does not matter, an InMemoryConnection never requests from the server.
+            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
+
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
+            IElasticClient client = new ElasticClient(connectionSettings);
+
 
             IAutosuggestQueryService autoSuggestClient = new ESAutosuggestQueryService(
                 client,
@@ -142,25 +140,15 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             //NOTE: this is when actualReq will get set.
             await autoSuggestClient.Get(
                 "cgov",
-                "en",
+                language,
                 term,
                 25
             );
 
-            SearchTemplateRequest<Suggestion> expReq = GetSearchRequest<Suggestion>(
-                "cgov",                 // Search index to look in.
-                "autosg_suggest_cgov_en",  // Template name, preceded by the name of the directory it's stored in.
-                term,                   // Search term
-                10,                     // Max number of records to retrieve.
-                "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"",
-                "all"
-            );
-
-            Assert.Equal(
-                expReq,
-                actualReq,
-                new Utils.Testing.ElasticTools.SearchTemplateRequestComparer()
-            );
+            Assert.Equal(expectedPath, esURI.AbsolutePath);
+            Assert.Equal(expectedContentType, esContentType);
+            Assert.Equal(expectedMethod, esMethod);
+            Assert.Equal(expectedBody, requestBody, new JTokenEqualityComparer());
         }
 
     }

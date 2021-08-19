@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -6,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Nest;
 
 using NCI.OCPL.Api.Common;
+using Elasticsearch.Net;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -14,11 +17,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
     /// </summary>
     public class ESSearchQueryService : ISearchQueryService
     {
+        private static Dictionary<Tuple<string, string>, ISiteWideSearchQueryBuilder> _queryBuilders = new Dictionary<Tuple<string, string>, ISiteWideSearchQueryBuilder>();
+
         private readonly IElasticClient _elasticClient;
 
         private readonly SearchIndexOptions _indexConfig;
 
         private readonly ILogger<ESSearchQueryService> _logger;
+
+        static ESSearchQueryService()
+        {
+            _queryBuilders.Add(new Tuple<string, string>("cgov", "en"), new ESCGovEnglishSitewideSearchQueryBuilder());
+            _queryBuilders.Add(new Tuple<string, string>("cgov", "es"), new ESCGovSpanishSitewideSearchQueryBuilder());
+            _queryBuilders.Add(new Tuple<string, string>("doc", "en"), new ESDocEnglishSitewideSearchQueryBuilder());
+            _queryBuilders.Add(new Tuple<string, string>("doc", "es"), new ESDocSpanishSitewideSearchQueryBuilder());
+        }
 
         /// <summary>
         /// Constructor
@@ -43,43 +56,37 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="site">An optional parameter used to limit the number of items returned based on site.</param>
         public async Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, string site)
         {
-            // Setup our template name based on the collection name.  Template name is the directory the
-            // file is stored in, an underscore, the template name prefix (search), an underscore,
-            // the name of the collection (only "cgov" or "doc" at this time), another underscore and then
-            // the language code (either "en" or "es").
-            string templateName = $"cgov_search_{collection}_{language}";
+            Indices index = Indices.Index( new string[]{this._indexConfig.AliasName});
 
-            //TODO: Make this a parameter that can take in a list of fields and turn them
-            //into this string.
+            //TODO: Make this a parameter that can take in a list of fields.
             // Setup the list of fields we want ES to return.
-            string fields = "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"";
-
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
+            string[] fields = new string[] {"url", "title", "metatag.description", "metatag.dcterms.type"};
+            Field[] requestedFields = (from fld in fields select new Field(fld)).ToArray();
 
             ISearchResponse<SiteWideSearchResult> response;
+
             try
             {
-                response = await _elasticClient.SearchTemplateAsync<SiteWideSearchResult>(sd => sd
-                    .Index(_indexConfig.AliasName)
-                    .File(templateName)
-                    .Params(pd => pd
-                        .Add("my_value", term)
-                        .Add("my_size", size)
-                        .Add("my_from", from)
-                        .Add("my_fields", fields)
-                        .Add("my_site", site)
-                    )
-                );
+                ISiteWideSearchQueryBuilder builder = _queryBuilders[new Tuple<string, string>(collection, language)];
+
+                SearchRequest request = new SearchRequest(index)
+                {
+                    Query = builder.GetQuery(term, new string[] {site}),
+                    Size = size,
+                    From = from,
+                    Source = new SourceFilter
+                    {
+                        Includes = requestedFields
+                    }
+                };
+
+                response = await _elasticClient.SearchAsync<SiteWideSearchResult>(request);
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex, $"Error searching index '{this._indexConfig.AliasName}'");
                 throw new APIInternalException("Errors occured.");
             }
-#pragma warning restore CS0618
 
             if (response.IsValid)
             {
@@ -91,7 +98,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             }
             else
             {
-                string message = $"Invalid response when searching for '{term}' with template '{templateName}'.";
+                string message = $"Invalid response when searching for '{term}'.";
                 _logger.LogError(message);
                 _logger.LogError(response.DebugInformation);
                 throw new APIInternalException("Error occured.");
@@ -110,17 +117,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             // References:
             // https://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-health.html
             // https://github.com/elastic/elasticsearch/blob/master/rest-api-spec/src/main/resources/rest-api-spec/api/cluster.health.json#L20
-            IClusterHealthResponse response;
 
+            ClusterHealthResponse response;
             try
             {
-                response = await _elasticClient.ClusterHealthAsync(hd =>
-                {
-                    hd = hd
-                        .Index(_indexConfig.AliasName);
-
-                    return hd;
-                });
+                Indices index = Indices.Index(new string[] {_indexConfig.AliasName});
+                response = await _elasticClient.Cluster.HealthAsync(index);
             }
             catch(Exception ex)
             {
@@ -136,8 +138,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                 return false;
             }
 
-            if (response.Status != "green"
-                && response.Status != "yellow")
+            if (response.Status != Health.Green
+                && response.Status != Health.Yellow )
             {
                 _logger.LogError($"Elasticsearch not healthy. Index status is '{response.Status}'.");
                 return false;

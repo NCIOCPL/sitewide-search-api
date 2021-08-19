@@ -1,13 +1,11 @@
 using Nest;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace NCI.OCPL.Api.SiteWideSearch
 {
     /// <summary>
     /// Represents a Single Site-Wide Search Result
     /// </summary>
-    [ElasticsearchType(Name = "doc" )]
     public class SiteWideSearchResult
     {
 
