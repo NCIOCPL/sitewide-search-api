@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Elasticsearch.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NCI.OCPL.Api.Common;
@@ -46,35 +47,34 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// and the total number of matching terms available.</returns>
         public async Task<Suggestions> Get(string collection, string language, string term, int size)
         {
-            // Setup our template name based on the collection name.  Template name is the directory the
-            // file is stored in, an underscore, the template name prefix (search), an underscore,
-            // the name of the collection (only "cgov" at this time), another underscore and then
-            // the language code (either "en" or "es").
-            string templateName = $"autosg_suggest_{collection}_{language}";
-
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
+            Indices index = Indices.Index(new string[]{this._indexConfig.AliasName});
+            SearchRequest request = new SearchRequest(index)
+            {
+                // Note the '+' operator for a Boolean's Filter clause.
+                Query = +new TermQuery { Field = "language", Value = language, IsVerbatim = true } &&
+                        new MatchQuery { Field = "term", Query = term, IsVerbatim = true }
+                ,
+                Sort = new List<ISort>
+                {
+                    new FieldSort { Field = "weight", Order = SortOrder.Descending }
+                },
+                Source = new SourceFilter
+                {
+                    Includes = new Field[] { new Field("term")}
+                },
+                Size = size
+            };
 
             ISearchResponse<Suggestion> response;
             try
             {
-                response = await _elasticClient.SearchTemplateAsync<Suggestion>(sd => sd
-                    .Index(_indexConfig.AliasName)
-                    .File(templateName)
-                    .Params(pd => pd
-                        .Add("searchstring", term)
-                        .Add("my_size", 10)
-                    )
-                );
+                response = await _elasticClient.SearchAsync<Suggestion>(request);
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex, $"Error searching index '{this._indexConfig.AliasName}'");
                 throw new APIInternalException("Errors occured");
             }
-#pragma warning restore CS0618
 
             if (response.IsValid)
             {
@@ -85,7 +85,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             }
             else
             {
-                string message = $"Invalid response when searching for '{term}' with template '{templateName}'.";
+                string message = $"Invalid response when searching for '{term}'.";
                 _logger.LogError(message);
                 _logger.LogError(response.DebugInformation);
                 throw new APIInternalException("errors occured.");
@@ -104,17 +104,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             // References:
             // https://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-health.html
             // https://github.com/elastic/elasticsearch/blob/master/rest-api-spec/src/main/resources/rest-api-spec/api/cluster.health.json#L20
-            IClusterHealthResponse response;
 
+            ClusterHealthResponse response;
             try
             {
-                response = await _elasticClient.ClusterHealthAsync(hd =>
-                {
-                    hd = hd
-                        .Index(_indexConfig.AliasName);
-
-                    return hd;
-                });
+                Indices index = Indices.Index(new string[] { _indexConfig.AliasName });
+                response = await _elasticClient.Cluster.HealthAsync(index);
             }
             catch(Exception ex)
             {
@@ -129,8 +124,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                 return false;
             }
 
-            if (response.Status != "green"
-                && response.Status != "yellow")
+            if (response.Status != Health.Green
+                && response.Status != Health.Yellow)
             {
                 _logger.LogError($"Elasticsearch not healthy. Index status is '{response.Status}'.");
                 return false;

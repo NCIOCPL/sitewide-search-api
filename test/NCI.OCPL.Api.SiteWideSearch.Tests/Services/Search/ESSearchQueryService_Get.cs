@@ -1,16 +1,17 @@
 using System;
-using System.Text;
 using System.IO;
+using System.Text;
 
 using Microsoft.Extensions.Logging.Testing;
 
 using Elasticsearch.Net;
 using Nest;
+using Nest.JsonNetSerializer;
 using Xunit;
 
 using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.Common.Testing;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
@@ -36,7 +37,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
@@ -63,7 +64,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
@@ -74,67 +75,44 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             );
         }
 
-        /// <summary>
-        /// Helper method to build a SearchTemplateRequest in a more compact manner
-        /// </summary>
-        /// <param name="index">The index to fetch from</param>
-        /// <param name="fileName">The template fileName to use</param>
-        /// <param name="term">The search term we are looking for</param>
-        /// <param name="size">The result set size</param>
-        /// <param name="from">Where to start the results from</param>
-        /// <param name="fields">The fields we are requesting</param>
-        /// <param name="site">The sites to filter the results by</param>
-        /// <returns>A SearchTemplateRequest</returns>
-        private SearchTemplateRequest<SiteWideSearchResult> GetSearchRequest(
-            string index,
-            string fileName,
-            string term,
-            int size,
-            int from,
-            string fields,
-            string site
-        ) {
 
-            // ISearchTemplateRequest.File is obsolete.
-            // Refactoring to remove this dependency is recorded as issue #28
-            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
-#pragma warning disable CS0618
-            SearchTemplateRequest<SiteWideSearchResult> expReq = new SearchTemplateRequest<SiteWideSearchResult>(index){
-                File = fileName
-            };
-#pragma warning restore CS0618
-
-            expReq.Params = new Dictionary<string, object>();
-            expReq.Params.Add("my_value", term);
-            expReq.Params.Add("my_size", size);
-            expReq.Params.Add("my_from", from);
-            expReq.Params.Add("my_fields", fields);
-            expReq.Params.Add("my_site", site);
-
-            return expReq;
-        }
-
-        // TODO: Add tests for varying the various parameters.
-
-        [Fact]
+        [Theory]
+        [InlineData("cgov", "en", 0, 10)]
+        [InlineData("cgov", "es", 500, 20)]
+        [InlineData("doc", "en", 200, 30)]
+        [InlineData("doc", "es", 500, 100)]
         /// <summary>
         /// Verify that the request sent to ES for a single term is being set up correctly.
         /// </summary>
-        public async void Check_For_Correct_Request_Data()
+        public async void Check_For_Correct_Request_Data(string requestedCollection, string requestedLanguage, int requestedFrom, int requestedSize)
         {
-            string term = "Breast Cancer";
+            string expectedMimeType = "application/json";
+            string expectedUrl = "/cgov/_search";
+            HttpMethod expectedMethod = HttpMethod.POST;
 
-            ISearchTemplateRequest actualReq = null;
+            Uri actualURI = null;
+            string actualMimeType = String.Empty;
+            HttpMethod actualMethod = HttpMethod.DELETE; // Something other than the expected value (default is GET).
 
-            //Setup the client with the request handler callback to be executed later.
-            IElasticClient client =
-                NCI.OCPL.Utils.Testing.ElasticTools.GetMockedSearchTemplateClient<SiteWideSearchResult>(
-                    req => actualReq = req,
-                    resMock => {
-                        //Make sure we say that the response is valid.
-                        resMock.Setup(res => res.IsValid).Returns(true);
-                    } // We don't care what the response looks like.
-                );
+            JToken requestBody = null;
+
+            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
+            conn.RegisterRequestHandlerForType<Nest.SearchResponse<SiteWideSearchResult>>((req, res) =>
+            {
+                requestBody = conn.GetRequestPost(req);
+
+                actualURI = req.Uri;
+                actualMimeType = req.RequestMimeType;
+                actualMethod = req.Method;
+
+                res.StatusCode = 200;
+                res.Stream = ElastcsearchTestingTools.MockEmptyResponse;
+            });
+
+            // The URL doesn't matter, it won't be used.
+            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
+            IElasticClient client = new ElasticClient(connectionSettings);
 
             ISearchQueryService searchClient = new ESSearchQueryService(
                 client,
@@ -143,31 +121,23 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             );
 
 
-            //NOTE: this is when actualReq will get set.
+            // NOTE: this is when actualReq will get set.
             await searchClient.Get(
-                "cgov", // Search collection to use
-                "en",   // language
-                term,   // term
-                0,      // from
-                10,     // size
+                requestedCollection, // Search collection to use
+                requestedLanguage,   // language
+                "Breast Cancer",   // term
+                requestedFrom,      // from
+                requestedSize,     // size
                 "all"   // site parameter
             );
 
-            SearchTemplateRequest<SiteWideSearchResult> expReq = GetSearchRequest(
-                "cgov",                 // Search index to look in.
-                "cgov_search_cgov_en",  // Template name, preceded by the name of the directory it's stored in.
-                term,                   // Search term
-                10,                     // Max number of records to retrieve.
-                0,                      // Offset of first record to retrieve.
-                "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"",
-                "all"
-            );
+            Assert.Equal(expectedMimeType, actualMimeType);
+            Assert.Equal(expectedUrl, actualURI.AbsolutePath);
+            Assert.Equal(expectedMethod, actualMethod);
 
-            Assert.Equal(
-                expReq,
-                actualReq,
-                new Utils.Testing.ElasticTools.SearchTemplateRequestComparer()
-            );
+            // The structure of the actual query is tested in the SitewideSearchQueryBuilder_Test class.
+            Assert.Equal(requestedSize, ((int)requestBody["size"]));
+            Assert.Equal(requestedFrom, (int)requestBody["from"]);
         }
 
     }

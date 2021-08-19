@@ -1,14 +1,17 @@
+using System;
+using System.IO;
+using System.Text;
+
 using Microsoft.Extensions.Logging.Testing;
 
+using Elasticsearch.Net;
 using Nest;
+using Nest.JsonNetSerializer;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
-using System.Text;
-using System.IO;
-using Elasticsearch.Net;
-using System;
-using Newtonsoft.Json.Linq;
+
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
@@ -48,7 +51,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
@@ -80,13 +83,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 res.StatusCode = 200;
 
                 actualURI = req.Uri;
-                actualMimeType = req.ContentType; // req.RequestMimeType; -- Property name will change for ES7.
+                actualMimeType = req.RequestMimeType;
                 actualMethod = req.Method;
                 actualRequestBody = conn.GetRequestPost(req);
             });
             // The URL doesn't matter, it won't be used.
             var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn);
+            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
             IElasticClient client = new ElasticClient(connectionSettings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
@@ -124,7 +127,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// The path is relative to the test project's TestData directory.</param>
         [Theory]
         [InlineData("ESHealthData/red.json")]
-        //[InlineData("ESHealthData/unexpected.json")]   // i.e. "Unexpected color" - it appears as if 5.6.x does not have unexpected
+        [InlineData("ESHealthData/unexpected.json")]   // i.e. "Unexpected color" - ES will throw an exception, this makes sure we handle it.
         public async void GetStatus_Unhealthy(string datafile)
         {
             IElasticClient client = ElasticTools.GetInMemoryElasticClient(datafile);

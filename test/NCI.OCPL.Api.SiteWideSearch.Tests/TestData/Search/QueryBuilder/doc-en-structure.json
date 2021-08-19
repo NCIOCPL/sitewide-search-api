@@ -1,0 +1,51 @@
+{
+    "bool": {
+        "filter": [
+            {
+                "bool": {
+                    "should": [
+                        { "term": {"metatag.content-language": { "value": "en" } } },
+                        { "bool": {
+                                "must_not": [
+                                    { "exists": { "field": "metatag.content-language" } }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "must": [
+            {
+                "bool": {
+                    "must": [
+                        { "exists": { "field": "searchtitle" } },
+                        { "prefix": { "searchurl.raw": { "value": "physics.cancer.gov" } } }
+                    ]
+                }
+            },
+            {
+                "bool": {
+                    "should": [
+                        { "match": { "content": { "operator": "and", "query": "chicken", "boost": 2.0 } } },
+                        { "match": { "searchtitle": { "query": "chicken", "boost": 2.0 } } },
+                        { "match": { "searchurl": { "query": "chicken", "boost": 3.0 } } },
+                        { "match_phrase": { "content": { "query": "chicken", "boost": 3.0 } } },
+                        {
+                            "bool": {
+                                "should": [
+                                    { "match": { "metatag.description": { "query": "chicken", "boost": 0.01 } } }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "should": [
+            {
+                "term": { "type": { "value": "text/html", "boost": 2.0 } }
+            }
+        ]
+    }
+}
