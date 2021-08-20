@@ -1,0 +1,167 @@
+{
+    "query": {
+      "boosting": {
+        "positive": {
+          "bool": {
+            "must": [
+
+           
+                {"bool": {
+                    "should": [
+                      {
+                        "term": {
+                          "metatag.content-language": "en"
+                        }
+                      },
+                      {"bool": {
+                          "must_not": {
+                              "exists": {
+                                  "field": "metatag.content-language"
+                                      }
+                                  }
+                              }
+                      }
+                    ]
+                  }}
+                ,
+
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "match": {
+                        "content": {
+                          "query": "{{my_value}}",
+                          "operator": "and",
+                          "boost": 1
+                        }
+                      }
+                    },
+                    {
+                      "match_phrase": {
+                        "content": {
+                          "query": "{{my_value}}",
+                          "boost": 1
+                        }
+                      }
+                    },
+
+                    {
+                      "match_phrase": {
+                        "searchtitle": {
+                          "query": "{{my_value}}",
+                          "boost": 1
+                        }
+                      }
+                    },
+                    {
+                      "match": {
+                        "searchtitle": {
+                          "query": "{{my_value}}",
+                          "boost": 1
+                        }
+                      }
+                    },
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "match": {
+                              "metatag.description": {
+                                "query": "{{my_value}}",
+                                "boost": 0.01
+                              }
+                            }
+                          },
+                                                      {
+                            "match_phrase": {
+                              "metatag.description": {
+                                "query": "{{my_value}}",
+                                "boost": 0.01
+                              }
+                            }
+                          }
+
+                        ]
+                      }
+                    }
+                  ]
+
+                }
+              }
+            ],
+            "should": [
+              {
+                "term": {
+                  "type": {
+                    "value": "text/html",
+                    "boost": 4
+                  }
+                }
+              },
+
+              { "match": { "metatag.dcterms.type": {  "query": "pdqcancerinfosummary","boost": 1.2}}},
+              { "match": { "metatag.dcterms.type": {  "query": "cgovcancertypehome","boost": 1.2}}},
+
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "term": {
+                        "host": {
+                          "value": "www.cancer.gov",
+                          "boost": 10
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "negative": {
+          "bool": {
+            "should": [
+              {
+                "bool": {
+                  "must": [
+                    {
+                      "terms": {
+                        "searchurl": [
+                          "2012",
+                          "2011",
+                          "2010",
+                          "2013"
+                        ]
+                      }
+                    },
+                    {
+                      "prefix": {
+                        "searchurl.raw": "www.cancer.gov/news-events/press-releases/"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "prefix": {
+                  "searchurl.raw": "www.cancer.gov/news-events/media-resources/multicultural/lifelines/"
+                }
+              },
+              {
+                "match": {
+                  "searchurl": "video"
+                }
+              }
+            ]
+          }
+        },
+        "negative_boost": 0.5
+      }
+    },
+"_source":  [ {{{my_fields}}} ]
+, "size":  "{{my_size}}"
+,"from": "{{my_from}}"
+, "sort":["_score", "url"]
+  }

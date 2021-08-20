@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 
 using Nest;
 
+using NCI.OCPL.Api.Common;
+
 namespace NCI.OCPL.Api.SiteWideSearch.Controllers
 {
     /// <summary>
@@ -25,13 +27,17 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         private readonly SearchIndexOptions _indexConfig;
         private readonly ILogger<SearchController> _logger;
 
+        /// <summary>
+        /// Message to return for a "healthy" status.
+        /// </summary>
         public const string HEALTHY_STATUS = "alive!";
 
         /// <summary>
         /// Creates a new instance of a Search Controller
         /// </summary>
-        /// <param name="elasticClient">An instance of an IElasticClient to use for connecting to the ElasticSearch cluster</param>
-        /// <param name="logger">An instance of a ILogger to use for logging messages</param>
+        /// <param name="elasticClient">An instance of an IElasticClient to use for connecting to the ElasticSearch cluster.</param>
+        /// <param name="config">The search configuration.</param>
+        /// <param name="logger">An instance of a ILogger to use for logging messages.</param>
         public SearchController(IElasticClient elasticClient,
             IOptions<SearchIndexOptions> config,
             ILogger<SearchController> logger)
@@ -97,6 +103,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             // Setup the list of fields we want ES to return.
             string fields = "\"url\", \"title\", \"metatag.description\", \"metatag.dcterms.type\"";
 
+            // ISearchTemplateRequest.File is obsolete.
+            // Refactoring to remove this dependency is recorded as issue #28
+            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
+#pragma warning disable CS0618
             //thios Can throw exception
             var response = _elasticClient.SearchTemplate<SiteWideSearchResult>(sd => sd
                 .Index(_indexConfig.AliasName)
@@ -109,6 +119,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
                     .Add("my_site", site)
                 )
             );
+#pragma warning restore CS0618
 
             if (response.IsValid) {
                 return new SiteWideSearchResults(

@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Tratamiento del cáncer de hígado infantil (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/higado/pro/tratamiento-higado-infantil-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos acerca del tratamiento cáncer de hígado infantil."
+    },
+    {
+      "title": "Prevención del cáncer de hígado (hepatocelular) (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/higado/pro/prevencion-higado-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Sumario de información revisada por expertos sobre factores que influirían en el riesgo de presentar cáncer hepatocelular y sobre las investigaciones dirigidas a la prevención de esta enfermedad."
+    },
+    {
+      "title": "Tratamiento del cáncer primario de hígado en adultos (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/higado/pro/tratamiento-higado-adultos-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos acerca del tratamiento del cáncer primario de hígado en adultos."
+    },
+    {
+      "title": "Tratamiento de los tumores neuroendocrinos de páncreas (tumores de células de los islotes) (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/pancreas/pro/tratamiento-tne-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos acerca del tratamiento de los tumores neuroendocrinos de páncreas (tumores de células de los islotes)."
+    },
+    {
+      "title": "Cardo mariano (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/cancer/tratamiento/mca/pro/cardo-mariano-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos sobre el uso del cardo mariano como tratamiento para personas con cáncer."
+    }
+  ],
+  "totalResults": 34
+}

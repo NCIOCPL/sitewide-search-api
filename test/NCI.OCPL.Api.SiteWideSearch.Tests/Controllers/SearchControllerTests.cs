@@ -16,7 +16,8 @@ using Newtonsoft.Json.Linq;
 using Moq;
 using Xunit;
 
-using NCI.OCPL.Utils.Testing;
+using NCI.OCPL.Api.Common;
+using NCI.OCPL.Api.Common.Testing;
 
 /*
  The SearchController class requires an IElasticClient, which is how
@@ -69,9 +70,14 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
             string site
         ) {
 
+            // ISearchTemplateRequest.File is obsolete.
+            // Refactoring to remove this dependency is recorded as issue #28
+            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
+#pragma warning disable CS0618
             SearchTemplateRequest<SiteWideSearchResult> expReq = new SearchTemplateRequest<SiteWideSearchResult>(index){
                 File = fileName
             };
+#pragma warning restore CS0618
 
             expReq.Params = new Dictionary<string, object>();
             expReq.Params.Add("my_value", term);
@@ -97,7 +103,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
 
             //Setup the client with the request handler callback to be executed later.
             IElasticClient client =
-                ElasticTools.GetMockedSearchTemplateClient<SiteWideSearchResult>(
+                NCI.OCPL.Utils.Testing.ElasticTools.GetMockedSearchTemplateClient<SiteWideSearchResult>(
                     req => actualReq = req,
                     resMock => {
                         //Make sure we say that the response is valid.
@@ -131,7 +137,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
             Assert.Equal(
                 expReq,
                 actualReq,
-                new ElasticTools.SearchTemplateRequestComparer()
+                new Utils.Testing.ElasticTools.SearchTemplateRequestComparer()
             );
         }
     }
@@ -229,7 +235,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// </summary>
         public void Check_Metadata_Description_Handling(string testFile, string expectedFile)
         {
-            JObject expected = ElasticTools.GetDataFileAsJObject(expectedFile);
+            JObject expected = TestingTools.GetDataFileAsJObject(expectedFile);
 
             IOptions<SearchIndexOptions> config = GetMockSearchIndexConfig();
             SearchController ctrl = new SearchController(
@@ -245,7 +251,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
                 "breast cancer"
             );
 
-            JObject actual = JObject.Parse(JsonConvert.SerializeObject(results));
+            JToken actual = JToken.Parse(JsonConvert.SerializeObject(results));
             Assert.Equal(expected, actual, new JTokenEqualityComparer());
         }
 

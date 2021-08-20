@@ -1,0 +1,201 @@
+{
+  "mappings": {
+    "doc": {
+      "properties": {
+        "anchor": {
+          "type": "text"
+        },
+        "boost": {
+          "type": "float"
+        },
+        "cache": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "content": {
+          "type": "text",
+          "fields": {
+            "es": {
+              "type": "text",
+              "analyzer": "spanish"
+            }
+          },
+          "analyzer": "cgovenglish"
+        },
+        "contentLength": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "date": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "digest": {
+          "type": "keyword"
+        },
+        "host": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "text"
+        },
+        "lang": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "lastModified": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "metatag": {
+          "properties": {
+            "content-language": {
+              "type": "keyword"
+            },
+            "dcterms": {
+              "properties": {
+                "type": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                }
+              }
+            },
+            "dcterms-type": {
+              "type": "keyword"
+            },
+            "description": {
+              "type": "text",
+              "norms": false,
+              "fields": {
+                "es": {
+                  "type": "text",
+                  "norms": false,
+                  "analyzer": "spanish"
+                }
+              },
+              "analyzer": "cgovenglish"
+            },
+            "keywords": {
+              "type": "text",
+              "fields": {
+                "es": {
+                  "type": "text",
+                  "analyzer": "spanish"
+                }
+              },
+              "analyzer": "cgovenglish"
+            }
+          }
+        },
+        "searchtitle": {
+          "type": "text",
+          "fields": {
+            "es": {
+              "type": "text",
+              "analyzer": "spanish"
+            }
+          },
+          "analyzer": "cgovenglish"
+        },
+        "searchurl": {
+          "type": "text",
+          "fields": {
+            "es": {
+              "type": "text",
+              "analyzer": "spanish"
+            },
+            "raw": {
+              "type": "keyword"
+            }
+          },
+          "analyzer": "cgovenglish"
+        },
+        "segment": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text"
+        },
+        "tstamp": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "url": {
+          "type": "keyword"
+        }
+      }
+    }
+  },
+  "settings": {
+    "index": {
+      "number_of_shards": "1",
+      "analysis": {
+        "filter": {
+          "english_stemmer": {
+            "type": "stemmer",
+            "language": "english"
+          },
+          "cgov_synonym_filter": {
+            "type": "synonym",
+            "synonyms_path": "synonym.txt"
+          },
+          "english_possessive_stemmer": {
+            "type": "stemmer",
+            "language": "possessive_english"
+          }
+        },
+        "analyzer": {
+          "cgovenglish": {
+            "filter": [
+              "asciifolding",
+              "english_possessive_stemmer",
+              "lowercase",
+              "stop",
+              "cgov_synonym_filter",
+              "english_stemmer"
+            ],
+            "tokenizer": "standard"
+          }
+        }
+      }
+    }
+  }
+}

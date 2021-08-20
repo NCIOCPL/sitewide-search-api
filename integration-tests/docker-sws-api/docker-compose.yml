@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+  elasticsearch:
+    image: elasticsearch:5.6.16
+    volumes:
+      - ./elasticsearch/scripts:/usr/share/elasticsearch/config/scripts
+      - ./elasticsearch/synonym.txt:/usr/share/elasticsearch/config/synonym.txt
+    # All of the ES settings can be set via the environment vars.
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms750m -Xmx750m
+    ports:
+      - "9200:9200"
+    networks:
+      swsapi:
+        aliases:
+          - elasticsearch
+
+  api:
+    build:
+      # Point to the root of the project.
+      context: ../../
+      # This path is relative to the context.
+      dockerfile: integration-tests/docker-sws-api/api/Dockerfile
+    volumes:
+      # Project root
+      - ../..:/app
+      # Integration configuration files we don't want in the source tree.
+      - ../../integration-tests/docker-sws-api/api/runtime/appsettings.inttest.json:/app/src/NCI.OCPL.Api.SiteWideSearch/appsettings.inttest.json
+      - ../../integration-tests/docker-sws-api/api/runtime/hosting.json:/app/src/NCI.OCPL.Api.SiteWideSearch/hosting.json
+      # Use the user's existing GitHub credentials
+      - ~/.nuget/NuGet/NuGet.Config:/root/.nuget/NuGet/NuGet.Config
+    ports:
+      - "5000:5000"
+    networks:
+      swsapi:
+        aliases:
+          - api
+    depends_on:
+      - elasticsearch
+
+networks:
+  swsapi:

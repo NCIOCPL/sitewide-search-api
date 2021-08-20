@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 
 using Nest;
 
+using NCI.OCPL.Api.Common;
+
 namespace NCI.OCPL.Api.SiteWideSearch.Controllers
 {
     /// <summary>
@@ -25,8 +27,17 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         private readonly AutosuggestIndexOptions _indexConfig;
         private readonly ILogger<AutosuggestController> _logger;
 
+        /// <summary>
+        /// Message to return for a "healthy" status.
+        /// </summary>
         public const string HEALTHY_STATUS = "alive!";
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="elasticClient">An Elasticsearch client instance.</param>
+        /// <param name="config">Configuration.</param>
+        /// <param name="logger">The logger.</param>
         public AutosuggestController(IElasticClient elasticClient,
             IOptions<AutosuggestIndexOptions> config,
             ILogger<AutosuggestController> logger)
@@ -77,6 +88,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             string templateName = String.Format("autosg_suggest_{0}_{1}", collection, language);
 
 
+            // ISearchTemplateRequest.File is obsolete.
+            // Refactoring to remove this dependency is recorded as issue #28
+            // https://github.com/NCIOCPL/sitewide-search-api/issues/28
+#pragma warning disable CS0618
             //TODO: Catch Exception
             var response = _elasticClient.SearchTemplate<Suggestion>(sd => sd
                 .Index(_indexConfig.AliasName)
@@ -86,6 +101,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
                     .Add("my_size", 10)
                 )
             );
+#pragma warning restore CS0618
 
             if (response.IsValid) {
                 return new Suggestions(

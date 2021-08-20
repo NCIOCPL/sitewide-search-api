@@ -1,0 +1,16 @@
+{
+"query":
+{
+ "bool" : {
+	"filter": {"term": {"language": "es"}},
+	"must" : {
+	"match": {
+		"term": "{{searchstring}}"
+	}}
+	}
+	},
+	"sort":{"weight":"desc"}
+  , "_source": ["term"]
+, "size":  "{{my_size}}"
+
+}

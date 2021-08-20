@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Options;
 using Xunit;
 
-using NCI.OCPL.Utils.Testing;
+using NCI.OCPL.Api.Common.Testing;
 
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
+using NCI.OCPL.Api.Common;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 {

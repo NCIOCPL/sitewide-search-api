@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Liver (Hepatocellular) Cancer Prevention (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/patient/liver-prevention-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Liver cancer risk factors include hepatitis B and C, cirrhosis, and aflatoxin (poison from certain foods). Learn about these and other risk factors for liver cancer and how to prevent liver cancer in this expert-reviewed and evidence-based summary."
+    },
+    {
+      "title": "Liver (Hepatocellular) Cancer Screening (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/patient/liver-screening-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Liver (hepatocellular) cancer screening is not currently recommended as a routine part of cancer screening. Not all screening tests are helpful, and many have risks. Learn more about liver cancer and the tests used to detect it in this expert-reviewed summary."
+    },
+    {
+      "title": "Advances in Liver Cancer Research - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/research",
+      "contentType": "cgvArticle",
+      "description": "An overview of recent research results and progress related to the prevention, early detection, and treatment of liver cancer, including research related to biomarkers, cirrhosis, and hepatitis infections. Selected NCI-supported programs that address liver cancer are also described."
+    },
+    {
+      "title": "Liver and Bile Duct Cancer—Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver",
+      "contentType": "cgvCancerTypeHome",
+      "description": "Liver cancer includes hepatocellular carcinoma and bile duct cancer (cholangiocarcinoma). Risk factors for HCC include chronic infection with hepatitis B or C and cirrhosis of the liver. Start here to find information on liver and bile duct cancer treatment, causes and prevention, screening, research, and statistics."
+    },
+    {
+      "title": "Liver and Bile Duct Cancer—Health Professional Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/hp",
+      "contentType": "cgvCancerTypeHome",
+      "description": "Liver cancer includes two major types: hepatocellular carcinoma (HCC) and intrahepatic bile duct cancer, also known as cholangiocarcinoma. Find evidence-based information on liver and bile duct cancer treatment, causes and prevention, screening, research, genomics and statistics."
+    }
+  ],
+  "totalResults": 4157
+}

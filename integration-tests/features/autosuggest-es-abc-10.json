@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "term": "abcd"
+    },
+    {
+      "term": "clasificación ABCD"
+    },
+    {
+      "term": "vía ABCA1"
+    }
+  ],
+  "total": 3
+}

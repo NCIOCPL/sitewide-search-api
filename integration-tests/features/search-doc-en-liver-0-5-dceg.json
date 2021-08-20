@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Liver Cancer Pooling Project - National Cancer Institute",
+      "url": "https://dceg.cancer.gov/research/cancer-types/liver/liver-cancer-pooling-project",
+      "contentType": "cgvArticle",
+      "description": "A liver cancer pooling project among existing U.S. cohorts in order to explore liver cancer etiology in a prospective manner"
+    },
+    {
+      "title": "DCEG Studies of Liver Cancer - National Cancer Institute",
+      "url": "https://dceg.cancer.gov/research/cancer-types/liver",
+      "contentType": "cgvMiniLanding",
+      "description": "DCEG is conducting studies on liver cancer, including hepatocellular carcinoma"
+    },
+    {
+      "title": "Hepatitis Viruses and Liver Cancer - National Cancer Institute",
+      "url": "https://dceg.cancer.gov/research/cancer-types/liver/hepatitis-virus-cancer",
+      "contentType": "cgvArticle",
+      "description": "Study of chronic hepatitis virus infection and the risk of liver cancer"
+    },
+    {
+      "title": "Liver cancer studies by the Metabolic Epidemiology Branch (MEB - National Cancer Institute",
+      "url": "https://dceg.cancer.gov/about/organization/programs-ebp/meb/meb-liver-cancer",
+      "contentType": "cgvArticle",
+      "description": "Liver cancer studies in the Metabolic Epidemiology Branch"
+    },
+    {
+      "title": "Event: Molecular Ecology of Liver Cancer in Africa - Pierre Hainaut, Ph.D. - National Cancer Institute",
+      "url": "https://dceg.cancer.gov/news-events/events/hainaut",
+      "contentType": "cgvEvent",
+      "description": "Molecular Ecology of Liver Cancer in Africa - Pierre Hainaut, Ph.D."
+    }
+  ],
+  "totalResults": 79
+}

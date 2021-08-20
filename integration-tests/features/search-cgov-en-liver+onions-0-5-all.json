@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Selected Vegetables/Sun's Soup (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/about-cancer/treatment/cam/patient/suns-soup-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "“Selected Vegetables” and “Sun’s Soup” refer to several different mixtures of vegetables and herbs that have been studied as treatments for cancer. Neither has been approved by the FDA for the treatment of cancer or any other medical condition. Learn more in this expert-reviewed summary."
+    },
+    {
+      "title": "Selected Vegetables/Sun's Soup (PDQ®)–Health Professional Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/about-cancer/treatment/cam/hp/suns-soup-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "“Selected Vegetables” and “Sun’s Soup” refer to several different mixtures of vegetables and herbs that have been studied as treatments for cancer. Neither has been approved by the FDA for the treatment of cancer or any other medical condition. Get detailed information in this clinician summary."
+    },
+    {
+      "title": "Childhood Liver Cancer Treatment (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/patient/child-liver-treatment-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Treatment for pediatric liver cancer depends on many factors, including the type of cancer and whether it has spread. When possible, liver cancer is removed by surgery. Learn about the types of treatment options for childhood liver cancers."
+    },
+    {
+      "title": "Liver (Hepatocellular) Cancer Prevention (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/patient/liver-prevention-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Liver cancer risk factors include hepatitis B and C, cirrhosis, and aflatoxin (poison from certain foods). Learn about these and other risk factors for liver cancer and how to prevent liver cancer in this expert-reviewed and evidence-based summary."
+    },
+    {
+      "title": "Liver (Hepatocellular) Cancer Screening (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/liver/patient/liver-screening-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Liver (hepatocellular) cancer screening is not currently recommended as a routine part of cancer screening. Not all screening tests are helpful, and many have risks. Learn more about liver cancer and the tests used to detect it in this expert-reviewed summary."
+    }
+  ],
+  "totalResults": 54
+}

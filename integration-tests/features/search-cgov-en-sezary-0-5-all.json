@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Mycosis Fungoides (Including Sézary Syndrome) Treatment (PDQ®)–Patient Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/lymphoma/patient/mycosis-fungoides-treatment-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Mycosis fungoides (including Sézary Syndrome) treatment options include photodynamic therapy, radiation therapy, chemotherapy, immunotherapy, and targeted therapy. Learn more about newly diagnosed and recurrent mycosis fungoides and its treatment in this expert-reviewed summary."
+    },
+    {
+      "title": "Mycosis Fungoides (Including Sézary Syndrome) Treatment (PDQ®)–Health Professional Version - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/lymphoma/hp/mycosis-fungoides-treatment-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Mycosis fungoides and Sézary syndrome are neoplasias of malignant T lymphocytes that affect the skin. Learn about the clinical presentation, prognosis, staging, and treatment for mycosis fungoides and Sézary syndrome in this expert-reviewed summary."
+    },
+    {
+      "title": "Clinical Trials Using Mogamulizumab - National Cancer Institute",
+      "url": "https://www.cancer.gov/about-cancer/treatment/clinical-trials/intervention/mogamulizumab",
+      "contentType": "nciAppModulePage",
+      "description": "NCI supports clinical trials that test new and more effective ways to treat cancer. Find clinical trials studying mogamulizumab."
+    },
+    {
+      "title": "Cancers by Body Location/System - National Cancer Institute",
+      "url": "https://www.cancer.gov/types/by-body-location",
+      "contentType": "cgvMiniLanding",
+      "description": "A list of all cancers, organized by location and/or function in the body. Cancers on the list are linked to information about treatment, supportive care, screening, prevention, clinical trials, and other topics."
+    },
+    {
+      "title": "A to Z List of Cancer Types - National Cancer Institute",
+      "url": "https://www.cancer.gov/types",
+      "contentType": "cgvHomeLanding",
+      "description": "Alphabetical list of all cancers, with links to disease-specific and general information about treatment, coping, screening, prevention, clinical trials, and other topics."
+    }
+  ],
+  "totalResults": 29
+}

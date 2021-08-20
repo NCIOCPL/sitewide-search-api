@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "title": "Tratamiento de los tumores de corazón (cardíacos) infantiles (PDQ®)–Versión para pacientes - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/cardiaco/paciente-tratamiento-cardiaco-infantil-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Es posible que los tumores de corazón (cardíacos) infantiles sean benignos (no cancerosos) o malignos (cancerosos). Para obtener más información sobre los síntomas, las pruebas diagnósticas y el tratamiento de los tumores de corazón infantiles, consulte este resumen de información revisada por expertos."
+    },
+    {
+      "title": "Tratamiento de los tumores de corazón (cardíacos) infantiles (PDQ®)–Versión para profesionales de salud - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/tipos/cardiaco/pro-tratamiento-cardiaco-infantil-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos y con base en datos probatorios acerca de las características histológicas, los factores de riesgo, el cuadro clínico inicial, la evaluación diagnóstica y el tratamiento de los tumores de corazón (cardíacos) infantiles."
+    },
+    {
+      "title": "Tratamiento del cáncer sin daño al corazón - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/cancer/tratamiento/investigacion/cardiotoxicidad",
+      "contentType": "cgvArticle",
+      "description": "Investigadores de los campos de oncología y de cardiología están trabajando para encontrar formas de impedir, manejar y posiblemente aun revertir los efectos secundarios cardiovasculares de ciertas terapias del cáncer."
+    },
+    {
+      "title": "Investigación de los efectos secundarios cardíacos de tratamientos del cáncer - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/noticias/temas-y-relatos-blog/2018/cancer-tratamiento-corazon-efectos-secundarios",
+      "contentType": "cgvBlogPost",
+      "description": "Algunos tratamientos del cáncer pueden dañar el corazón y el sistema cardiovascular, problema que se conoce como cardiotoxicidad. Cardiólogos y oncólogos se reunieron recientemente para discutir las estrategias y las direcciones futuras de investigación para solucionar estos efectos secundarios."
+    },
+    {
+      "title": "Síndromes cardiopulmonares (PDQ®)–Versión para pacientes - Instituto Nacional del Cáncer",
+      "url": "https://www.cancer.gov/espanol/cancer/tratamiento/efectos-secundarios/cardiopulmonares-pdq",
+      "contentType": "pdqCancerInfoSummary",
+      "description": "Resumen de información revisada por expertos acerca de las afecciones comunes que producen síntomas en el pecho. Los síndromes cardiopulmonares que se exponen en este sumario son la disnea relacionada con el cáncer, el derrame pleural, el derrame pericárdico y el síndrome de la vena cava superior."
+    }
+  ],
+  "totalResults": 132
+}
