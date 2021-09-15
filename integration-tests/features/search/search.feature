@@ -87,3 +87,46 @@ Feature: Search
         When method get
         Then status 400
         And match $.Message == 'Not a valid language code.'
+
+
+    Scenario: cgov word boundries #63, hodgkin's will get match for hodgkin, english cgov
+        Given path 'Search', 'cgov', 'en', "hodgkin's disease"
+        And param size = 10
+        When method get
+        Then status 200
+        And match $.results[0].title contains 'Hodgkin'
+
+
+
+    Scenario: cgov word boundries #63, hodgkin's will get match for hodgkin, english doc
+        Given path 'Search', 'doc', 'en', "hodgkin's disease"
+        And param size = 10
+        And param site = 'dceg.cancer.gov'
+        When method get
+        Then status 200
+        And match $.results[0].title contains 'Hodgkin'
+
+
+    Scenario: cgov word boundries #63, hodgkin's will get match for hodgkin, Spanish doc
+        Given path 'Search', 'doc', 'es', "consultas"
+        And param size = 10
+        And param site = 'www.cancer.gov/rare-brain-spine-tumor/espanol'
+        When method get
+        Then status 200
+        And match $.results[1].title == 'Consulta - Instituto Nacional del Cáncer'
+
+
+
+    Scenario: cgov word boundries #63, terms start/contain none alphabetic characters, english cgov
+        Given path 'Search', 'cgov', 'en', "5-fu"
+        And param size = 10
+        When method get
+        Then status 200
+        And match $.results[0].url contains 'colorectal'
+
+    Scenario: cgov word boundries #63, terms start/contain none alphabetic characters, spanish cgov
+        Given path 'Search', 'cgov', 'es', "5-fu"
+        And param size = 10
+        When method get
+        Then status 200
+        And match $.results[0].url contains 'colorrectal'    
