@@ -87,3 +87,52 @@ Feature: Search
         When method get
         Then status 400
         And match $.Message == 'Not a valid language code.'
+
+
+
+    Scenario Outline: site parameter with nonsense site values
+        for site: <site>
+
+        Given path 'Search', 'doc', 'en', 'cancer'
+        And param site = site
+        When method get
+        Then status 200
+        And match $.totalResults == 0
+
+        Examples:
+            | site              |
+            | ʍʍʍ˙ɔɐuɔǝɹ˙ƃoʌ    |
+            | ʌoƃ˙ɹǝɔuɐɔ˙ʍʍʍ    |
+    
+    Scenario Outline: DOC search, site parameter contains the url of a top-level site or the url of a path-based site
+        for site: <site>
+
+        Given path 'Search', 'doc', 'en', 'cancer'
+        And param size = 1000
+        And param site = site
+        When method get
+        Then status 200
+        And match each $.results[*].url contains site
+
+        Examples:
+            | site                  |
+            | dceg.cancer.gov       |
+            | www.cancer.gov/nano   |
+    
+
+
+    Scenario Outline: cgov search, site parameter value doesn't make difference in results
+        for site: <site>
+
+        Given path 'Search', 'cgov', 'en', 'prostate'
+        And param size = 10
+        When method get
+        Then status 200
+        And match $.totalResults == 4377
+
+        Examples:
+            | site                  |
+            | dceg.cancer.gov       |
+            | random test           |
+            | all                   |
+
