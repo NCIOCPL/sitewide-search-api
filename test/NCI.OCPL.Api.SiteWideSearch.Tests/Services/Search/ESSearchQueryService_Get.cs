@@ -89,6 +89,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string expectedMimeType = "application/json";
             string expectedUrl = "/cgov/_search";
             HttpMethod expectedMethod = HttpMethod.POST;
+            JToken expectedSort = JToken.Parse(@"
+                [
+                    {""_score"": {}},
+                    {""url"": {}}
+                ]
+            ");
+
 
             Uri actualURI = null;
             string actualMimeType = String.Empty;
@@ -138,6 +145,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             // The structure of the actual query is tested in the SitewideSearchQueryBuilder_Test class.
             Assert.Equal(requestedSize, ((int)requestBody["size"]));
             Assert.Equal(requestedFrom, (int)requestBody["from"]);
+            Assert.Equal(expectedSort, requestBody["sort"], new JTokenEqualityComparer());
         }
 
     }
