@@ -77,6 +77,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                     Source = new SourceFilter
                     {
                         Includes = requestedFields
+                    },
+                    Sort = new List<ISort>
+                    {
+                        new FieldSort {Field = "_score"},
+                        new FieldSort {Field = "url"}
                     }
                 };
 
