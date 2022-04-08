@@ -82,7 +82,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                     {
                         new FieldSort {Field = "_score"},
                         new FieldSort {Field = "url"}
-                    }
+                    },
+                    TrackTotalHits = true
                 };
 
                 response = await _elasticClient.SearchAsync<SiteWideSearchResult>(request);

@@ -146,6 +146,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             Assert.Equal(requestedSize, ((int)requestBody["size"]));
             Assert.Equal(requestedFrom, (int)requestBody["from"]);
             Assert.Equal(expectedSort, requestBody["sort"], new JTokenEqualityComparer());
+            Assert.True((bool)requestBody["track_total_hits"]);
         }
 
     }
