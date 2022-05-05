@@ -1,166 +1,158 @@
 {
   "mappings": {
-    "doc": {
-      "properties": {
-        "anchor": {
-          "type": "text"
-        },
-        "boost": {
-          "type": "float"
-        },
-        "cache": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
+    "dynamic": "strict",
+    "properties": {
+      "anchor": {
+        "type": "text"
+      },
+      "boost": {
+        "type": "float"
+      },
+      "cache": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "content": {
+        "type": "text",
+        "fields": {
+          "es": {
+            "type": "text",
+            "analyzer": "spanish"
           }
         },
-        "content": {
-          "type": "text",
-          "fields": {
-            "es": {
-              "type": "text",
-              "analyzer": "spanish"
-            }
+        "analyzer": "cgovenglish"
+      },
+      "contentLength": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "date": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "digest": {
+        "type": "keyword"
+      },
+      "host": {
+        "type": "keyword"
+      },
+      "id": {
+        "type": "text"
+      },
+      "lang": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "lastModified": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "metatag": {
+        "properties": {
+          "content-language": {
+            "type": "keyword"
           },
-          "analyzer": "cgovenglish"
-        },
-        "contentLength": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "date": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "digest": {
-          "type": "keyword"
-        },
-        "host": {
-          "type": "keyword"
-        },
-        "id": {
-          "type": "text"
-        },
-        "lang": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "lastModified": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "metatag": {
-          "properties": {
-            "content-language": {
-              "type": "keyword"
-            },
-            "dcterms": {
-              "properties": {
-                "type": {
-                  "type": "text",
-                  "fields": {
-                    "keyword": {
-                      "type": "keyword",
-                      "ignore_above": 256
-                    }
+          "dcterms": {
+            "properties": {
+              "type": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword"
                   }
                 }
               }
-            },
-            "dcterms-type": {
-              "type": "keyword"
-            },
-            "description": {
-              "type": "text",
-              "norms": false,
-              "fields": {
-                "es": {
-                  "type": "text",
-                  "norms": false,
-                  "analyzer": "spanish"
-                }
-              },
-              "analyzer": "cgovenglish"
-            },
-            "keywords": {
-              "type": "text",
-              "fields": {
-                "es": {
-                  "type": "text",
-                  "analyzer": "spanish"
-                }
-              },
-              "analyzer": "cgovenglish"
-            }
-          }
-        },
-        "searchtitle": {
-          "type": "text",
-          "fields": {
-            "es": {
-              "type": "text",
-              "analyzer": "spanish"
             }
           },
-          "analyzer": "cgovenglish"
-        },
-        "searchurl": {
-          "type": "text",
-          "fields": {
-            "es": {
-              "type": "text",
-              "analyzer": "spanish"
-            },
-            "raw": {
-              "type": "keyword"
-            }
+          "dcterms-type": {
+            "type": "keyword"
           },
-          "analyzer": "cgovenglish"
-        },
-        "segment": {
-          "type": "keyword"
-        },
-        "title": {
-          "type": "text"
-        },
-        "tstamp": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
+          "description": {
+            "type": "text",
+            "fields": {
+              "es": {
+                "type": "text",
+                "norms": false,
+                "analyzer": "spanish"
+              }
+            },
+            "norms": false,
+            "analyzer": "cgovenglish"
+          },
+          "keywords": {
+            "type": "text",
+            "fields": {
+              "es": {
+                "type": "text",
+                "analyzer": "spanish"
+              }
+            },
+            "analyzer": "cgovenglish"
           }
-        },
-        "type": {
-          "type": "keyword"
-        },
-        "url": {
-          "type": "keyword"
         }
+      },
+      "searchtitle": {
+        "type": "text",
+        "fields": {
+          "es": {
+            "type": "text",
+            "analyzer": "spanish"
+          }
+        },
+        "analyzer": "cgovenglish"
+      },
+      "searchurl": {
+        "type": "text",
+        "fields": {
+          "es": {
+            "type": "text",
+            "analyzer": "spanish"
+          },
+          "raw": {
+            "type": "keyword"
+          }
+        },
+        "analyzer": "cgovenglish"
+      },
+      "segment": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text"
+      },
+      "tstamp": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "type": {
+        "type": "keyword"
+      },
+      "url": {
+        "type": "keyword"
       }
     }
   },
