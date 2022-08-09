@@ -2,7 +2,11 @@ version: "3.7"
 
 services:
   elasticsearch:
-    image: elasticsearch:7.17.5
+    build:
+      # Point to the root of the project.
+      context: ../../
+      # This path is relative to the context.
+      dockerfile: integration-tests/docker-sws-api/elasticsearch/Dockerfile
     volumes:
       - ./elasticsearch/synonym.txt:/usr/share/elasticsearch/config/synonym.txt
     # All of the ES settings can be set via the environment vars.
