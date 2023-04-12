@@ -39,10 +39,12 @@ echo "ES status is green"
 
 pushd $DIR/../data/source
 echo "Load the index mappings"
+echo "...for search"
 MAPPING_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPUT ${ELASTIC_HOST}/cgov --data-binary \"@cgov-mapping.json\""
 mapping_output=$(eval $MAPPING_LOAD_CMD)
 echo $mapping_output
 
+echo "...for autosuggest"
 MAPPING_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPUT ${ELASTIC_HOST}/autosg --data-binary \"@autosg-mapping.json\""
 mapping_output=$(eval $MAPPING_LOAD_CMD)
 echo $mapping_output
@@ -50,32 +52,23 @@ echo $mapping_output
 
 # Combining the cgov-data files causes the bulk load to fail.
 echo "Load the records"
-BULK_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPOST ${ELASTIC_HOST}/_bulk --data-binary \"@cgov-data-1.jsonl\""
-load_output=$(eval $BULK_LOAD_CMD)
 
-## Test to make sure we loaded items
-## TODO: Actually check for errors.
-echo $load_output | wc -l
+for filename in cgov-data-{1..3}.jsonl regression-data.jsonl autosg-data.jsonl; do
+    echo -n "Loading $filename... "
+    BULK_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPOST ${ELASTIC_HOST}/_bulk --data-binary \"@$filename\""
+    load_output=$(eval $BULK_LOAD_CMD)
 
-BULK_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPOST ${ELASTIC_HOST}/_bulk --data-binary \"@cgov-data-2.jsonl\""
-load_output=$(eval $BULK_LOAD_CMD)
+    ## Test to make sure we loaded items
+    HAS_ERRORS=$(echo $load_output | jq '.errors')
+    if [[ "$HAS_ERRORS" = 'false' ]];
+    then
+        echo 'success.'
+    else
+        echo 'FAIL'
+        echo $load_output | jq '.items[].index.error | select(. != null)'
+        break
+    fi
+done
 
-## Test to make sure we loaded items
-## TODO: Actually check for errors.
-echo $load_output | wc -l
-
-BULK_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPOST ${ELASTIC_HOST}/_bulk --data-binary \"@cgov-data-3.jsonl\""
-load_output=$(eval $BULK_LOAD_CMD)
-
-## Test to make sure we loaded items
-## TODO: Actually check for errors.
-echo $load_output | wc -l
-
-BULK_LOAD_CMD="curl -fsS -H \"Content-Type: application/x-ndjson\" -XPOST ${ELASTIC_HOST}/_bulk --data-binary \"@autosg-data.jsonl\""
-load_output=$(eval $BULK_LOAD_CMD)
-
-## Test to make sure we loaded items
-## TODO: Actually check for errors.
-echo $load_output | wc -l
 
 popd

@@ -1,0 +1,41 @@
+/*
+    Parsed version of Search.CGov.En.MetadataNestedArray.json.
+    Aside from the data being present, the first entry, and
+    only the first entry, from the metata.description field
+    should be present.
+*/
+{
+    "Results": [
+        {
+            "Title": "Nolan, James — Early Detection Research Network ",
+            "URL": "https://edrn.nci.nih.gov/about-edrn/sites/160-fred-hutchinson-cancer-center/nolan-james/",
+            "ContentType": null,
+            "Description": "James Nolan is a primary admin staff member of the Early Detection Research Network."
+        },
+        {
+            "Title": "Eshleman, James — Early Detection Research Network ",
+            "URL": "https://edrn.nci.nih.gov/about-edrn/sites/800-johns-hopkins-university/eshleman-james/",
+            "ContentType": null,
+            "Description": "James Eshleman is a co-investigator of the Early Detection Research Network."
+        },
+        {
+            "Title": "Herman, James — Early Detection Research Network ",
+            "URL": "https://edrn.nci.nih.gov/about-edrn/sites/813-university-of-pittsburgh-school-of-medicine/herman-james/",
+            "ContentType": null,
+            "Description": "James Herman is a member of the Early Detection Research Network."
+        },
+        {
+            "Title": "Willey, James — Early Detection Research Network ",
+            "URL": "https://edrn.nci.nih.gov/about-edrn/sites/865-university-of-toledo-college-of-medicine/willey-james/",
+            "ContentType": null,
+            "Description": "James Willey is an associate member of the Early Detection Research Network."
+        },
+        {
+            "Title": "Buxbaum, James — Early Detection Research Network ",
+            "URL": "https://edrn.nci.nih.gov/about-edrn/sites/987-university-of-southern-california/buxbaum-james/",
+            "ContentType": null,
+            "Description": "James Buxbaum is an associate member of the Early Detection Research Network."
+        }
+    ],
+    "TotalResults": 266
+}

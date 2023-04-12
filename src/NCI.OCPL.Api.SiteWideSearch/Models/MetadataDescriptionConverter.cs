@@ -9,7 +9,7 @@ namespace NCI.OCPL.Api.SiteWideSearch
     /// Converts a JSON element containing either a single string, or an array of strings, into
     /// a single string.
     /// </summary>
-    class MetadataDescriptionConverter : JsonConverter<string>
+    public class MetadataDescriptionConverter : JsonConverter<string>
     {
         /// <summary>
         /// Responsible for reading a JSON element containing either a single string or an array of strings
@@ -24,15 +24,45 @@ namespace NCI.OCPL.Api.SiteWideSearch
         public override string ReadJson(JsonReader reader, Type objectType, string existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             // If it's just a string, return the value.
-            if(reader.ValueType == typeof(string)) {
+            if(reader.TokenType == JsonToken.String) {
                 return (string)reader.Value;
+            }
+            else if(reader.TokenType == JsonToken.StartArray)
+            {
+                string value;
+
+                // This is an array.
+                // Record the current depth.
+                int initialDepth = reader.Depth;
+
+                // Advance to next token, and check for a possible nested array.
+                while(reader.Read() && reader.TokenType == JsonToken.StartArray)
+                    continue;
+
+                // Get the value, if one exists.
+                switch (reader.TokenType)
+                {
+                    case JsonToken.String:
+                        value = (String)reader.Value;
+                        break;
+
+                    case JsonToken.EndArray:
+                        value = String.Empty;
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Don't know how to work with tokens of type '{reader.TokenType}'.");
+                }
+
+                // Advance to end of the outermost array.
+                while(reader.Depth > initialDepth)
+                    reader.Read();
+
+                return value;
             }
             else
             {
-                // Otherwise, save the first value and skip past the rest.
-                string value = reader.ReadAsString();
-                while(reader.ReadAsString() != null);
-                return value;
+                throw new InvalidOperationException($"Don't know how to work with tokens of type '{reader.TokenType}'.");
             }
         }
 
