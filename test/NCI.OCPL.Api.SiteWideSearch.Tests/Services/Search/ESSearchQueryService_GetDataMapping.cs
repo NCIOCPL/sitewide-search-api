@@ -96,6 +96,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         }
 
         [Theory]
+        [InlineData("Search.CGov.En.MetadataNestedArray.json", "Search.CGov.En.MetadataNestedArray-Expected.json")]
         [InlineData("Search.CGov.En.MetadataArray.json", "Search.CGov.En.MetadataArray-Expected.json")]
         [InlineData("Search.CGov.En.MetadataSingle.json", "Search.CGov.En.MetadataSingle-Expected.json")]
         /// <summary>
