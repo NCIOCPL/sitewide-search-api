@@ -5,16 +5,16 @@ Feature: Search Pagination
 
     Scenario Outline: Changing the size parameter manipulates the number of results returned without affecting the reported total number of matches
         for size: <size>
-    
+
         Given path 'Search', 'cgov', 'en', 'cancer'
         And param size = size
         When method get
         Then status 200
-        And def totalResultsInData = 6889
+        And def totalResultsInData = 6894
         And def numResultsExpected = (<size> > totalResultsInData ? totalResultsInData : <size>)
         And match $.results == '#[numResultsExpected]'
         And match $.totalResults == totalResultsInData
-    
+
         Examples:
             | size  |
             | 0     |
