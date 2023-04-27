@@ -120,13 +120,6 @@ jobs:
     name: Run Integration Tests (on Linux)
     runs-on: ubuntu-latest
     needs: test_build_release
-    services:
-      elasticsearch:
-        image: elasticsearch:5.6.16
-        ports:
-          ## NOTE: This will be exposed as a random port referenced below by job.services.elasticsearch.ports[9200]
-          - 9200/tcp
-        options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - uses: actions/checkout@v2
@@ -141,18 +134,25 @@ jobs:
         with:
           dotnet-version: '3.1.*'
           source-url: "https://nuget.pkg.github.com/${{ env.OWNER }}/index.json"
+      - name: Start Docker
+        run: |
+            # Sitewide search uses a synonyms list which is placed directly into the Elasticsearch config
+            # directory. It's not possible to do this with a service container as they are created before the job
+            # has performed its checkout step. We therefore have to manage Docker directly.
+            # Run only elasticsearch.
+            docker compose --file integration-tests/docker-sws-api/docker-compose.yml up --detach elasticsearch
       - name: Load Data into elasticsearch & prepare for tests
         env:
-          ELASTIC_SEARCH_HOST: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
+          ELASTIC_SEARCH_HOST: http://localhost:9200
         run: |
-              ## Create test output and API logging location
-              mkdir -p integration-tests/target
+            ## Create test output and API logging location
+            mkdir -p integration-tests/target
 
-#              ## Load the elasticsearch data
-#              ./integration-tests/bin/load-integration-data.sh
+            ## Load the elasticsearch data
+            ./integration-tests/bin/load-integration-data.sh
       - name: Start API
         env:
-          Elasticsearch__Servers: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
+          Elasticsearch__Servers: http://localhost:9200
           ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: true
           API_URL: http://localhost:5000
           SLEEP_TIMEOUT: 5
@@ -182,30 +182,32 @@ jobs:
               done
 
               echo "API is up"
-#      - name: Run Integration Test
-#        ## Normally bash runs with -e which exits the shell upon hitting
-#        ## an error which breaks our capturing of those errors.
-#        shell: bash --noprofile --norc -o pipefail {0}
-#        run: |
-#              ## Run Karate
-#              cd integration-tests && ./bin/karate ./features
-#
-#              ## Store the exit code off so we can pass this step and
-#              ## capture the test output in the next step, but still
-#              ## fail the entire job
-#              echo "TEST_EXIT_CODE=$?" >> $GITHUB_ENV
-#              exit 0
-#      - name: Upload Integration test results
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: integration-test-results
-#          path: integration-tests/target
-#      - name: Fail build on bad tests
-#        run: |
-#              ## Check if we had errors on the test step, and if so, fail the job
-#              if [ $TEST_EXIT_CODE -ne 0 ]; then
-#                echo "Tests Failed -- See Run Integration Test step or integration-test-results artifact for more information"
-#                exit $TEST_EXIT_CODE
-#              else
-#                echo "Tests passed"
-#              fi
+      - name: Run Integration Test
+        ## Normally bash runs with -e which exits the shell upon hitting
+        ## an error which breaks our capturing of those errors.
+        shell: bash --noprofile --norc -o pipefail {0}
+        run: |
+              ## Run Karate
+              cd integration-tests && ./bin/karate ./features
+              ## Store the exit code off so we can pass this step and
+              ## capture the test output in the next step, but still
+              ## fail the entire job
+              echo "TEST_EXIT_CODE=$?" >> $GITHUB_ENV
+              exit 0
+      - name: Upload Integration test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: integration-test-results
+          path: integration-tests/target
+      - name: Stop Docker
+        run: |
+            docker compose --file integration-tests/docker-sws-api/docker-compose.yml down
+      - name: Fail build on bad tests
+        run: |
+              ## Check if we had errors on the test step, and if so, fail the job
+              if [ $TEST_EXIT_CODE -ne 0 ]; then
+                echo "Tests Failed -- See Run Integration Test step or integration-test-results artifact for more information"
+                exit $TEST_EXIT_CODE
+              else
+                echo "Tests passed"
+              fi
