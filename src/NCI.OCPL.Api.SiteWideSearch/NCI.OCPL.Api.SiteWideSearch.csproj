@@ -1,15 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <DebugType>portable</DebugType>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>NCI.OCPL.Api.SiteWideSearch</AssemblyName>
-    <OutputType>Exe</OutputType>
-    <PackageId>NCI.OCPL.Api.SiteWideSearch</PackageId>
-  </PropertyGroup>
-
-  <PropertyGroup>
+    <TargetFramework>netcoreapp6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
