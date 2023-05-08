@@ -153,7 +153,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
             SiteWideSearchResults expectedRes = new SiteWideSearchResults(0, new SiteWideSearchResult[0]);
 
             SiteWideSearchResults actualRes = await ctrl.Get (
-                        "some collection",
+                        "cgov",
                         "en",
                         termValue
                     );

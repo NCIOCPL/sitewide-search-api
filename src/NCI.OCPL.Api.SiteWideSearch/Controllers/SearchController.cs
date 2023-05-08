@@ -22,6 +22,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
     {
         // Static to limit to a single instance (can't do const for non-scalar types)
         static readonly string[] validLanguages = { "en", "es" };
+        static readonly string[] validCollections = { "cgov", "doc" };
 
         private readonly ILogger<SearchController> _logger;
         private readonly ISearchQueryService _searchQueryService;
@@ -73,6 +74,9 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
 
             if (string.IsNullOrWhiteSpace(collection))
                 throw new APIErrorException(400, "You must supply a collection name");
+
+            if(!validCollections.Contains(collection))
+                throw new APIErrorException(400, "Not a valid collection.");
 
             if (!validLanguages.Contains(language))
                 throw new APIErrorException(400, "Not a valid language code.");
