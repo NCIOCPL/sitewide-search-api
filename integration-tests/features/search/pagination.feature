@@ -17,7 +17,7 @@ Feature: Search Pagination
 
         Examples:
             | size  |
-            | 0     |
+            | 1     |
             | 10    |
             | 100   |
             | 1000  |

@@ -24,6 +24,21 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         static readonly string[] validLanguages = { "en", "es" };
         static readonly string[] validCollections = { "cgov", "doc" };
 
+        /// <summary>
+        /// Default starting offset into the list of search results.
+        /// </summary>
+        public const int DEFAULT_FROM_LOCATION  = 0;
+
+        /// <summary>
+        /// Default number of search results to return.
+        /// </summary>
+        public const int DEFAULT_QUERY_SIZE = 10;
+
+        /// <summary>
+        /// Default site filter.
+        /// </summary>
+        public const string DEFAULT_SITE = "all";
+
         private readonly ILogger<SearchController> _logger;
         private readonly ISearchQueryService _searchQueryService;
 
@@ -66,9 +81,9 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             string collection,
             string language,
             string term = null,
-            [FromQuery] int from = 0,
-            [FromQuery] int size = 10,
-            [FromQuery] string site = "all"
+            [FromQuery] int from = DEFAULT_FROM_LOCATION,
+            [FromQuery] int size = DEFAULT_QUERY_SIZE,
+            [FromQuery] string site = DEFAULT_SITE
             )
         {
 
@@ -91,6 +106,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
                     new SiteWideSearchResult[0]
                 );
             }
+
+            if(from < 0)
+                from = DEFAULT_FROM_LOCATION;
+
+            if(size <= 0)
+                size = DEFAULT_QUERY_SIZE;
 
             //TODO: Access Logging with params
             //_logger.LogInformation("Search Request -- Term: {0}, Page{1} ", term, pagenum);
