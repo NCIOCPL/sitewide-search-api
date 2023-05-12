@@ -1,2 +1,2 @@
 # Karate tool
-This is Karate 0.9.5 downloaded from https://github.com/intuit/karate/releases/tag/v0.9.5.
+This is Karate 1.4.0 downloaded from https://github.com/karatelabs/karate/releases/download/v1.4.0/karate-1.4.0.jar.
