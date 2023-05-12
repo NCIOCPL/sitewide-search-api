@@ -1,8 +1,7 @@
 ## Steps to Run Locally
 1. Install docker (if not already installed)
 1. Have NuGet configured correctly (See the "NuGet Configuration" topic below).
-1. Ensure you have a [Java JDK 14](https://jdk.java.net/archive/) or less installed and it is set to your JAVA_HOME environment variable
-  - This requirement will go away with Karate 1.0
+1. Ensure you have a Java JDK.
 1. Open a command prompt
 1. Clone this repository
 1. `cd <REPO_ROOT>/integration-tests`
