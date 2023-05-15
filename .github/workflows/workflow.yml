@@ -79,10 +79,25 @@ jobs:
     name: Run Integration Tests (on Linux)
     runs-on: ubuntu-latest
     needs: test_build_release
+    services:
+      elasticsearch:
+        image: elasticsearch:7.17.5
+        env:
+          discovery.type: single-node
+          ES_JAVA_OPTS: -Xms750m -Xmx750m
+        ports:
+          ## NOTE: This will be exposed as a random port referenced below by job.services.elasticsearch.ports[9200]
+          - 9200/tcp
+        options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      - name: Copy synonyms into Elasticsearch.
+        run: |
+            CONTAINER_ID=$(docker ps -q --filter "ancestor=elasticsearch:7.17.5")
+            docker cp "$GITHUB_WORKSPACE/integration-tests/docker-sws-api/elasticsearch/synonym.txt"  "$CONTAINER_ID:/usr/share/elasticsearch/config/synonym.txt"
 
       - name: Download Published Artifact
         uses: actions/download-artifact@v3
@@ -97,18 +112,19 @@ jobs:
           dotnet-version: '6.0.*'
           source-url: "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
+      # - name: Load Data into elasticsearch & prepare for tests
+      #   env:
+      #     ELASTIC_SEARCH_HOST: http://localhost:9200
+      #   run: |
+      #       # Sitewide search uses a synonyms list which is placed directly into the Elasticsearch config
+      #       # directory. It's not possible to do this with a service container as they are created before the job
+      #       # has performed its checkout step. We therefore have to manage Docker directly.
+      #       # Run only elasticsearch.
+      #       docker compose --file integration-tests/docker-sws-api/docker-compose.yml up --detach elasticsearch
+
       - name: Load Data into elasticsearch & prepare for tests
         env:
-          ELASTIC_SEARCH_HOST: http://localhost:9200
-        run: |
-            # Sitewide search uses a synonyms list which is placed directly into the Elasticsearch config
-            # directory. It's not possible to do this with a service container as they are created before the job
-            # has performed its checkout step. We therefore have to manage Docker directly.
-            # Run only elasticsearch.
-            docker compose --file integration-tests/docker-sws-api/docker-compose.yml up --detach elasticsearch
-      - name: Load Data into elasticsearch & prepare for tests
-        env:
-          ELASTIC_SEARCH_HOST: http://localhost:9200
+          ELASTIC_SEARCH_HOST: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
         run: |
             ## Create test output and API logging location
             mkdir -p integration-tests/target
@@ -118,7 +134,7 @@ jobs:
 
       - name: Start API
         env:
-          Elasticsearch__Servers: http://localhost:9200
+          Elasticsearch__Servers: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
           ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: true
           API_URL: http://localhost:5000
           SLEEP_TIMEOUT: 5
@@ -167,9 +183,11 @@ jobs:
         with:
           name: integration-test-results
           path: integration-tests/target
-      - name: Stop Docker
-        run: |
-            docker compose --file integration-tests/docker-sws-api/docker-compose.yml down
+
+      # - name: Stop Docker
+      #   run: |
+      #       docker compose --file integration-tests/docker-sws-api/docker-compose.yml down
+
       - name: Fail build on bad tests
         run: |
               ## Check if we had errors on the test step, and if so, fail the job
