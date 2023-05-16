@@ -266,3 +266,6 @@ buildNumber.properties
 .settings
 .DS_Store
 
+
+
+!/integration-tests/bin

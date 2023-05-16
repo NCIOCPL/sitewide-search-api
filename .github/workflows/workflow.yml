@@ -79,10 +79,27 @@ jobs:
     name: Run Integration Tests (on Linux)
     runs-on: ubuntu-latest
     needs: test_build_release
+    services:
+      elasticsearch:
+        image: elasticsearch:7.17.5
+        env:
+          discovery.type: single-node
+          ES_JAVA_OPTS: -Xms750m -Xmx750m
+        ports:
+          ## NOTE: This will be exposed as a random port referenced below by job.services.elasticsearch.ports[9200]
+          - 9200/tcp
+        options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      - name: API-specific Elasticsearch setup.
+        run: |
+            if [[ -e 'integration-tests/bin/docker-setup.sh' ]]; then
+              CONTAINER_ID=$(docker ps -q --filter "ancestor=elasticsearch:7.17.5")
+              integration-tests/bin/docker-setup.sh $CONTAINER_ID
+            fi
 
       - name: Download Published Artifact
         uses: actions/download-artifact@v3
@@ -99,16 +116,7 @@ jobs:
 
       - name: Load Data into elasticsearch & prepare for tests
         env:
-          ELASTIC_SEARCH_HOST: http://localhost:9200
-        run: |
-            # Sitewide search uses a synonyms list which is placed directly into the Elasticsearch config
-            # directory. It's not possible to do this with a service container as they are created before the job
-            # has performed its checkout step. We therefore have to manage Docker directly.
-            # Run only elasticsearch.
-            docker compose --file integration-tests/docker-sws-api/docker-compose.yml up --detach elasticsearch
-      - name: Load Data into elasticsearch & prepare for tests
-        env:
-          ELASTIC_SEARCH_HOST: http://localhost:9200
+          ELASTIC_SEARCH_HOST: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
         run: |
             ## Create test output and API logging location
             mkdir -p integration-tests/target
@@ -167,9 +175,7 @@ jobs:
         with:
           name: integration-test-results
           path: integration-tests/target
-      - name: Stop Docker
-        run: |
-            docker compose --file integration-tests/docker-sws-api/docker-compose.yml down
+
       - name: Fail build on bad tests
         run: |
               ## Check if we had errors on the test step, and if so, fail the job
