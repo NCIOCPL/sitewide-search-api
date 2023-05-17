@@ -4,7 +4,7 @@
 # API-specific setup of the Docker container.  (E.g. copying files.)
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-echo $DIR
+cd $DIR
 
 if [[ -z $1 ]]; then
     echo 'Container ID not specified.'
