@@ -97,7 +97,6 @@ jobs:
       - name: API-specific Elasticsearch setup.
         run: |
             if [[ -e 'integration-tests/bin/docker-setup.sh' ]]; then
-              echo "Waves hello!"
               CONTAINER_ID=$(docker ps -q --filter "ancestor=elasticsearch:7.17.5")
               integration-tests/bin/docker-setup.sh $CONTAINER_ID
             fi
@@ -124,6 +123,8 @@ jobs:
 
             ## Load the elasticsearch data
             ./integration-tests/bin/load-integration-data.sh
+
+            curl "${ELASTIC_SEARCH_HOST}/_cat/indices"
 
       - name: Start API
         env:
