@@ -128,6 +128,7 @@ jobs:
 
             sleep 10
             curl "${ELASTIC_SEARCH_HOST}/_cat/indices"
+            curl "${ELASTIC_SEARCH_HOST}/_cat/nodes"
 
       - name: Start API
         env:
