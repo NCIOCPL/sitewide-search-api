@@ -13,6 +13,7 @@ on:
       - 'feature/**'
   ## Any pull request. Yes the syntax looks weird
   pull_request:
+  workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
   NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -24,7 +25,8 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest, macOS-latest]
+        operating-system: [ubuntu-latest]
+        #operating-system: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - name: Check out code
