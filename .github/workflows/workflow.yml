@@ -126,6 +126,7 @@ jobs:
             ## Load the elasticsearch data
             ./integration-tests/bin/load-integration-data.sh
 
+            sleep 10
             curl "${ELASTIC_SEARCH_HOST}/_cat/indices"
 
       - name: Start API
