@@ -131,7 +131,7 @@ jobs:
 
       - name: Start API
         env:
-          Elasticsearch__Servers: http://localhost:9200
+          Elasticsearch__Servers: http://localhost:${{ job.services.elasticsearch.ports[9200] }}
           ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: true
           API_URL: http://localhost:5000
           SLEEP_TIMEOUT: 5
