@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging.Testing;
 
@@ -28,7 +29,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
 
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
-                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string[]>())
             )
             // We don't care about the actual object being returned, we just need one.
             .ReturnsAsync(new SiteWideSearchResults(0, new SiteWideSearchResult[0]));
@@ -41,7 +42,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
             await ctrl.Get("cgov", "en", "breast cancer", inputFrom, inputSize);
 
             querySvc.Verify(
-                svc => svc.Get("cgov", "en", "breast cancer", SearchController.DEFAULT_FROM_LOCATION, SearchController.DEFAULT_QUERY_SIZE, SearchController.DEFAULT_SITE),
+                svc => svc.Get("cgov", "en", "breast cancer", SearchController.DEFAULT_FROM_LOCATION, SearchController.DEFAULT_QUERY_SIZE, new string[] {SearchController.DEFAULT_SITE}),
                 Times.Once
             );
         }
@@ -56,7 +57,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
-                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string[]>())
             )
             // We don't care about the actual object being returned, we just need one.
             .ReturnsAsync(new SiteWideSearchResults(0, new SiteWideSearchResult[0]));
@@ -69,10 +70,47 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
             await ctrl.Get("cgov", "en", "breast cancer", inputFrom, inputSize);
 
             querySvc.Verify(
-                svc => svc.Get("cgov", "en", "breast cancer", inputFrom, inputSize, SearchController.DEFAULT_SITE),
+                svc => svc.Get("cgov", "en", "breast cancer", inputFrom, inputSize, new string[] {SearchController.DEFAULT_SITE}),
                 Times.Once
             );
         }
 
+        public static IEnumerable<object[]> EmptySiteList => new[]
+        {
+            new object[]{null,                      new string[] { SearchController.DEFAULT_SITE } },
+            new object[]{new string[0],             new string[] { SearchController.DEFAULT_SITE } },
+            new object[]{new string[] {"", null},   new string[] { SearchController.DEFAULT_SITE } },
+            new object[]{new string[] {"all"},      new string[] { SearchController.DEFAULT_SITE } },
+
+            new object[]{new string[] {"physics.cancer.gov"},   new string[] { "physics.cancer.gov" } },
+            new object[]{new string[] {"dceg.cancer.gov", "www.cancer.gov/connect-prevention-study" },   new string[] { "dceg.cancer.gov", "www.cancer.gov/connect-prevention-study" } },
+        };
+
+        /// <summary>
+        /// Verify the controller works correctly with varying site filters.
+        /// </summary>
+        [Theory, MemberData(nameof(EmptySiteList))]
+        public async void Default_For_Empty_Site_list(string[] inputSiteList, string[] expectedSiteList)
+        {
+            Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
+            querySvc.Setup(
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string[]>())
+            )
+            // We don't care about the actual object being returned, we just need one.
+            .ReturnsAsync(new SiteWideSearchResults(0, new SiteWideSearchResult[0]));
+
+            SearchController ctrl = new SearchController(
+                NullLogger<SearchController>.Instance,
+                querySvc.Object
+            );
+
+            // The controller should pass the site list regardless of collection value.
+            await ctrl.Get("cgov", "en", "breast cancer", 10, 20, inputSiteList);
+
+            querySvc.Verify(
+                svc => svc.Get("cgov", "en", "breast cancer", 10, 20, expectedSiteList),
+                Times.Once
+            );
+        }
     }
 }

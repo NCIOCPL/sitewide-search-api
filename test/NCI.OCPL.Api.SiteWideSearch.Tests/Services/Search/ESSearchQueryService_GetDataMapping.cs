@@ -36,7 +36,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 10,
                 10,
-                "all"
+                new string[] { "all" }
             );
 
             Assert.Equal(12915, results.TotalResults);
@@ -63,7 +63,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 10,
                 10,
-                "all"
+                new string[] { "all" }
             );
 
             Assert.Empty(results.Results);
@@ -90,7 +90,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 10,
                 10,
-                "all"
+                new string[] { "all" }
             );
             Assert.All(results.Results, item => Assert.NotNull(item));
         }
@@ -119,7 +119,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 10,
                 10,
-                "all"
+                new string[] { "all" }
             );
 
 
@@ -148,7 +148,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 10,
                 10,
-                "all"
+                new string[] { "all" }
             );
 
             Assert.All(results.Results, item => Assert.NotNull(item.URL));

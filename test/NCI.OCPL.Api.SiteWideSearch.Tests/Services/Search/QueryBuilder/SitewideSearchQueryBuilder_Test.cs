@@ -18,6 +18,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         [InlineData(typeof(ESCGovSpanishSitewideSearchQueryBuilder), "pollo", new string[]{"all"}, "cgov-es-structure.json")]
         [InlineData(typeof(ESDocEnglishSitewideSearchQueryBuilder), "chicken", new string[]{"physics.cancer.gov"}, "doc-en-structure.json")]
         [InlineData(typeof(ESDocSpanishSitewideSearchQueryBuilder), "pollo", new string[]{"www-test-acsf.cancer.gov/rare-brain-spine-tumor/espanol"}, "doc-es-structure.json")]
+        [InlineData(typeof(ESDocEnglishSitewideSearchQueryBuilder), "chicken", new string[]{"dceg.cancer.gov","www.cancer.gov/connect-prevention-study"}, "doc-en-multisite-structure.json")]
+        [InlineData(typeof(ESDocSpanishSitewideSearchQueryBuilder), "pollo", new string[]{"www.cancer.gov/pediatric-adult-rare-tumor/espanol","www.cancer.gov/rare-brain-spine-tumor/espanol"}, "doc-es-multisite-structure.json")]
         public void Structure_Is_Correct(Type builderType, string searchTerm, string[] siteFilter, string expectedFile)
         {
             JToken expected = TestingTools.GetDataFileAsJObject($"Search/QueryBuilder/{expectedFile}");
