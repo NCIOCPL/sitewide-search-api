@@ -44,7 +44,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 
             // The parameters and result doesn't matter, just verify that it throws APIInternalException.
             await Assert.ThrowsAsync<APIInternalException>(
-                () => searchClient.Get("cgov", "en", "breast cancer", 10, 10, "all")
+                () => searchClient.Get("cgov", "en", "breast cancer", 10, 10, new string[] {"all"})
             );
         }
 
@@ -71,7 +71,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 
             // The parameters and result doesn't matter, just verify that it throws APIInternalException.
             await Assert.ThrowsAsync<APIInternalException>(
-                () => searchClient.Get("cgov", "en", "breast cancer", 10, 10, "all")
+                () => searchClient.Get("cgov", "en", "breast cancer", 10, 10, new string[] { "all" })
             );
         }
 
@@ -135,7 +135,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "Breast Cancer",   // term
                 requestedFrom,      // from
                 requestedSize,     // size
-                "all"   // site parameter
+                new string[] { "all" }   // site parameter
             );
 
             Assert.Equal(expectedMimeType, actualMimeType);

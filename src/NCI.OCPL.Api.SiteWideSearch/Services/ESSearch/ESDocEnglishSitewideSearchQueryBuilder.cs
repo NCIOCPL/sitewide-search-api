@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Nest;
@@ -21,8 +22,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         protected override QueryContainer GetQueryImpl(
             QueryContainerDescriptor<SiteWideSearchResult> qcd,
             string searchTerm,
-            string siteFilter)
+            IEnumerable<string> siteFilter)
         {
+            // Get the collection of subqueries for restricting the results to specific sites.
+            QueryContainer[] siteFilterSubqueries = GetSiteFilterSubQueries(siteFilter);
+
             // Q: Why didn't you use the overloaded operators instead of a Bool query?
             // A: Because the overloaded operators promote sub-queries to the level of
             //    their parents. This syntax is more verbose, but gets the correct structure.
@@ -35,8 +39,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                     )
                 )
                 .Must( bm => (
-                        bm.Exists(e => e.Field("searchtitle")) &&
-                        bm.Prefix(p => p.Field("searchurl.raw").Value(siteFilter).Verbatim())
+                        bm.Bool(bsq => bsq
+                            .Must(m => m.Exists(e => e.Field("searchtitle")))
+                            .Should(siteFilterSubqueries)
+                            .MinimumShouldMatch(1)
+                        )
                     ),
                     bm => bm
                         .Bool( b => b

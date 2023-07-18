@@ -21,7 +21,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         protected override QueryContainer GetQueryImpl(
             QueryContainerDescriptor<SiteWideSearchResult> qcd,
             string searchTerm,
-            string siteFilter)
+            IEnumerable<string> siteFilter)
         {
             qcd.Boosting(boost => boost
                 .Positive(pos => pos

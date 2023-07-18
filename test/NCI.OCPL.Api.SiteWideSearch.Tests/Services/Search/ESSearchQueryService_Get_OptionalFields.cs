@@ -75,7 +75,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                 "breast cancer",
                 20,
                 10,
-                "all"
+                new string[] {"all"}
             );
 
             SiteWideSearchResult item = results.Results[offset];

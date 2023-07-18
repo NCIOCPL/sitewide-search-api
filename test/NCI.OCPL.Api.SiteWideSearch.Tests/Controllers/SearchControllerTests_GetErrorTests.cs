@@ -28,7 +28,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
-                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())
+                svc => svc.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string[]>())
             )
             .Throws(new APIInternalException("Internal error"));
 
