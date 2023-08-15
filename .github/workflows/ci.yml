@@ -1,0 +1,12 @@
+name: Sitewide Search CI workflow
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  ci_remote:
+    uses: nciocpl/nci.ocpl.api.shared/.github/workflows/common-api-ci.yml@ticket/52-shared-wf
+    with:
+      api-project: src/NCI.OCPL.Api.SiteWideSearch/NCI.OCPL.Api.SiteWideSearch.csproj
+      artifact-name: sitewide-search
