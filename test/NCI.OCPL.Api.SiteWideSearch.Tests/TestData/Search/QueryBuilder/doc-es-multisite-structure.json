@@ -11,7 +11,8 @@
                         { "exists": { "field": "searchtitle" } }
                     ],
                     "should": [
-                        { "prefix": { "searchurl.raw": { "value": "www-test-acsf.cancer.gov/rare-brain-spine-tumor/espanol" } } }
+                        { "prefix": { "searchurl.raw": { "value": "www.cancer.gov/pediatric-adult-rare-tumor/espanol" } } },
+                        { "prefix": { "searchurl.raw": { "value": "www.cancer.gov/rare-brain-spine-tumor/espanol" } } }
                     ]
                 }
             },

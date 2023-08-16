@@ -53,8 +53,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="term">The search term to search for</param>
         /// <param name="from">The offset of results to retrieve</param>
         /// <param name="size">The number of items to retrieve</param>
-        /// <param name="site">An optional parameter used to limit the number of items returned based on site.</param>
-        public async Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, string site)
+        /// <param name="siteList">An optional parameter used to limit the items returned to a given list of sites.</param>
+        public async Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, IEnumerable<string> siteList)
         {
             Indices index = Indices.Index( new string[]{this._indexConfig.AliasName});
 
@@ -71,7 +71,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
 
                 SearchRequest request = new SearchRequest(index)
                 {
-                    Query = builder.GetQuery(term, new string[] {site}),
+                    Query = builder.GetQuery(term, siteList),
                     Size = size,
                     From = from,
                     Source = new SourceFilter

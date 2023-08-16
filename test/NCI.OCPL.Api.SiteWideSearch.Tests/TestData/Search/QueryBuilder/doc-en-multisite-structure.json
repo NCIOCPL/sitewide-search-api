@@ -23,7 +23,8 @@
                         { "exists": { "field": "searchtitle" } }
                     ],
                     "should": [
-                        { "prefix": { "searchurl.raw": { "value": "physics.cancer.gov" } } }
+                        { "prefix": { "searchurl.raw": { "value": "dceg.cancer.gov" } } },
+                        { "prefix": { "searchurl.raw": { "value": "www.cancer.gov/connect-prevention-study" } } }
                     ]
                 }
             },

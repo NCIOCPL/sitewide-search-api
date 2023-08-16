@@ -69,7 +69,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
         /// <summary>
         /// Gets the results of a search
         /// </summary>
-        /// <param name="collection">The search collection/strategy to use.  This defines the ES template to use.</param>
+        /// <param name="collection">The search collection/strategy to use.</param>
         /// <param name="language">The language to use. Only "en" and "es" are currently supported.</param>
         /// <param name="term">The search term to search for</param>
         /// <param name="from">The offset of results to retrieve</param>
@@ -83,7 +83,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             string term = null,
             [FromQuery] int from = DEFAULT_FROM_LOCATION,
             [FromQuery] int size = DEFAULT_QUERY_SIZE,
-            [FromQuery] string site = DEFAULT_SITE
+            [FromQuery] string[] site = null
             )
         {
 
@@ -113,6 +113,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
             if(size <= 0)
                 size = DEFAULT_QUERY_SIZE;
 
+            // Remove any sites which are null/blank.
+            if(site != null)
+                site = site.Where(site => !String.IsNullOrWhiteSpace(site)).ToArray();
+            if(site == null || site.Length == 0)
+                site = new string[] {DEFAULT_SITE};
+
             //TODO: Access Logging with params
             //_logger.LogInformation("Search Request -- Term: {0}, Page{1} ", term, pagenum);
 
@@ -121,7 +127,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Controllers
 
             try
             {
-                return await _searchQueryService.Get(collection,language,term, from,size,site);
+                return await _searchQueryService.Get(collection,language,term, from, size, site);
             }
             catch(Exception)
             {

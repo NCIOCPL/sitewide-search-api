@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NCI.OCPL.Api.SiteWideSearch
@@ -13,7 +14,7 @@ namespace NCI.OCPL.Api.SiteWideSearch
         /// <param name="from">The offset of results to retrieve</param>
         /// <param name="size">The number of items to retrieve</param>
         /// <param name="site">An optional parameter used to limit the number of items returned based on site.</param>
-        Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, string site);
+        Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, IEnumerable<string> site);
 
         /// <summary>
         /// Checks whether the underlying data service is in a healthy condition.

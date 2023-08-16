@@ -21,7 +21,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         protected override QueryContainer GetQueryImpl(
             QueryContainerDescriptor<SiteWideSearchResult> qcd,
             string searchTerm,
-            string siteFilter)
+            IEnumerable<string> siteFilter)
         {
             // Q: Why didn't you use the overloaded operators instead of a Bool query?
             // A: Because the overloaded operators promote sub-queries to the level of
