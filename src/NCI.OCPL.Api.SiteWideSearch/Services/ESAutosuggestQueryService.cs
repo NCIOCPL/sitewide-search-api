@@ -85,7 +85,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             }
             else
             {
-                string message = $"Invalid response when searching for '{term}'.";
+                string message = $"Invalid response when searching for '{term}'."
+                    .Replace(Environment.NewLine, String.Empty);
                 _logger.LogError(message);
                 _logger.LogError(response.DebugInformation);
                 throw new APIInternalException("errors occured.");
