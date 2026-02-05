@@ -43,6 +43,12 @@ Feature: Search Term
     Scenario Outline: Images do not appear in the results when searching for image-specific terms.
         for collection: <collection>, lang: <lang>, term: <term>, from: from, size: <size>, site: <site>
 
+        # These tests are expected/permitted to return emtpy arrays.
+        # Karate 1.4.1 introduced a breaking change in wich match each defauts to failing
+        # if the array is empty.  Fortunately, we can configure around it.
+        # https://github.com/karatelabs/karate/releases/tag/v1.4.1
+        * configure matchEachEmptyAllowed = true
+
         Given path 'Search', collection, lang, term
         And param from = from
         And param size = size
