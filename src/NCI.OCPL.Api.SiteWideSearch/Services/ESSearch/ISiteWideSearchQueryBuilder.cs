@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-using Nest;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -15,6 +15,6 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="searchTerm">The term to search for.</param>
         /// <param name="siteFilters">List of sites to include. If the list is empty, results from all available sites will be considered.</param>
         /// <returns></returns>
-        QueryContainer GetQuery(string searchTerm, IEnumerable<string> siteFilters);
+        Query GetQuery(string searchTerm, IEnumerable<string> siteFilters);
     }
 }

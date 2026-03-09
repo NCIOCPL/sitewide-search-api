@@ -1,5 +1,4 @@
-using System;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace NCI.OCPL.Api.SiteWideSearch
 {
@@ -20,7 +19,7 @@ namespace NCI.OCPL.Api.SiteWideSearch
         /// <returns>JSON structure.</returns>
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            return JsonSerializer.Serialize(this);
         }
     }
 }

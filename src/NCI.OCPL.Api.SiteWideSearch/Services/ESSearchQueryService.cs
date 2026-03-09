@@ -1,14 +1,14 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Cluster;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Nest;
 
 using NCI.OCPL.Api.Common;
-using Elasticsearch.Net;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -19,7 +19,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
     {
         private static Dictionary<Tuple<string, string>, ISiteWideSearchQueryBuilder> _queryBuilders = new Dictionary<Tuple<string, string>, ISiteWideSearchQueryBuilder>();
 
-        private readonly IElasticClient _elasticClient;
+        private readonly ElasticsearchClient _elasticClient;
 
         private readonly SearchIndexOptions _indexConfig;
 
@@ -39,7 +39,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="elasticClient">An Elasticsearch client instance.</param>
         /// <param name="config">Configuration/settings for the query.</param>
         /// <param name="logger">The logger</param>
-        public ESSearchQueryService(IElasticClient elasticClient,
+        public ESSearchQueryService(ElasticsearchClient elasticClient,
             IOptions<SearchIndexOptions> config,
             ILogger<ESSearchQueryService> logger)
         {
@@ -56,32 +56,29 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="siteList">An optional parameter used to limit the items returned to a given list of sites.</param>
         public async Task<SiteWideSearchResults> Get(string collection, string language, string term, int from, int size, IEnumerable<string> siteList)
         {
-            Indices index = Indices.Index( new string[]{this._indexConfig.AliasName});
-
             //TODO: Make this a parameter that can take in a list of fields.
             // Setup the list of fields we want ES to return.
-            string[] fields = new string[] {"url", "title", "metatag.description", "metatag.dcterms.type"};
-            Field[] requestedFields = (from fld in fields select new Field(fld)).ToArray();
+            string[] fields = new string[] { "url", "title", "metatag.description", "metatag.dcterms.type" };
 
-            ISearchResponse<SiteWideSearchResult> response;
+            SearchResponse<SiteWideSearchResult> response;
 
             try
             {
                 ISiteWideSearchQueryBuilder builder = _queryBuilders[new Tuple<string, string>(collection, language)];
 
-                SearchRequest request = new SearchRequest(index)
+                SearchRequest request = new SearchRequest(this._indexConfig.AliasName)
                 {
                     Query = builder.GetQuery(term, siteList),
                     Size = size,
                     From = from,
-                    Source = new SourceFilter
+                    Source = new SourceConfig(new SourceFilter
                     {
-                        Includes = requestedFields
-                    },
-                    Sort = new List<ISort>
+                        Includes = fields
+                    }),
+                    Sort = new SortOptions[]
                     {
-                        new FieldSort {Field = "_score"},
-                        new FieldSort {Field = "url"}
+                        new FieldSort("_score"),
+                        new FieldSort("url")
                     },
                     TrackTotalHits = true
                 };
@@ -94,7 +91,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                 throw new APIInternalException("Errors occured.");
             }
 
-            if (response.IsValid)
+            if (response.IsValidResponse)
             {
                 return new SiteWideSearchResults(
                     response.Total,
@@ -118,18 +115,16 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <returns>True if the data store is operational, false otherwise.</returns>
         public async Task<bool> GetIsHealthy()
         {
-            // Use the cluster health API to verify that the Best Bets index is functioning.
-            // Maps to https://ncias-d1592-v.nci.nih.gov:9299/_cluster/health/bestbets?pretty (or other server)
+            // Use the cluster health API to verify that the index is functioning.
             //
             // References:
             // https://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-health.html
             // https://github.com/elastic/elasticsearch/blob/master/rest-api-spec/src/main/resources/rest-api-spec/api/cluster.health.json#L20
 
-            ClusterHealthResponse response;
+            HealthResponse response;
             try
             {
-                Indices index = Indices.Index(new string[] {_indexConfig.AliasName});
-                response = await _elasticClient.Cluster.HealthAsync(index);
+                response = await _elasticClient.Cluster.HealthAsync(new HealthRequest(_indexConfig.AliasName));
             }
             catch(Exception ex)
             {
@@ -138,15 +133,15 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
 
             }
 
-            if (!response.IsValid)
+            if (!response.IsValidResponse)
             {
                 _logger.LogError("Error checking ElasticSearch health.");
                 _logger.LogError($"Returned debug info: {response.DebugInformation}.");
                 return false;
             }
 
-            if (response.Status != Health.Green
-                && response.Status != Health.Yellow )
+            if (response.Status != HealthStatus.Green
+                && response.Status != HealthStatus.Yellow )
             {
                 _logger.LogError($"Elasticsearch not healthy. Index status is '{response.Status}'.");
                 return false;

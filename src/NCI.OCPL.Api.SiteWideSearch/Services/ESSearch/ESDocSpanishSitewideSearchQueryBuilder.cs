@@ -1,8 +1,6 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
 
-using Nest;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -15,56 +13,56 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <summary>
         /// Builds the sitewide search query for Spanish DOC queries.
         /// </summary>
-        /// <param name="qcd">A QueryContainer instance</param>
         /// <param name="searchTerm">The term to search for.</param>
         /// <param name="siteFilter">The site search results should be limited to.</param>
         /// <returns></returns>
-        protected override QueryContainer GetQueryImpl(
-            QueryContainerDescriptor<SiteWideSearchResult> qcd,
+        protected override Query GetQueryImpl(
             string searchTerm,
             IEnumerable<string> siteFilter)
         {
             // Get the collection of subqueries for restricting the results to specific sites.
-            QueryContainer[] siteFilterSubqueries = GetSiteFilterSubQueries(siteFilter);
+            Query[] siteFilterSubqueries = GetSiteFilterSubQueries(siteFilter);
 
-            // Q: Why didn't you use the overloaded operators instead of a Bool query?
-            // A: Because the overloaded operators promote sub-queries to the level of
-            //    their parents. This syntax is more verbose, but gets the correct structure.
-            qcd
-            .Bool( b => b
-                .Filter( bf =>
-                    (
-                        bf.Term(t => t.Field("metatag.content-language").Value("es"))
-                    )
-                )
-                .Must( bm => (
-                        bm.Bool(bsq => bsq
-                            .Must(m => m.Exists(e => e.Field("searchtitle")))
-                            .Should(siteFilterSubqueries)
-                            .MinimumShouldMatch(1)
-                        )
-                    ),
-                    bm => bm
-                        .Bool( b => b
-                            .Should(
-                            bs => bm.Match(m => m.Field("content.es").Query(searchTerm).Operator(Operator.And).Boost(1).Verbatim() ),
-                            bs => bm.Match(m => m.Field("searchtitle.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs => bm.Match(m => m.Field("searchurl.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs => bm.MatchPhrase(mp => mp.Field("content.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs =>  bs.Bool( bb =>
-                                bb.Should( bbs =>
-                                    bbs.Match(m => m.Field("metatag.description.es").Query(searchTerm).Boost(0.01).Verbatim())
-                                )
-                            )
-                        )
-                    )
-                )
-                .Should(
-                    bs => bs.Term(t => t.Field("type").Value("text/html").Boost(1))
-                )
-            );
-
-            return qcd;
+            return new BoolQuery
+            {
+                Filter = new Query[]
+                {
+                    new TermQuery("metatag.content-language", "es")
+                },
+                Must = new Query[]
+                {
+                    new BoolQuery
+                    {
+                        Must = new Query[]
+                        {
+                            new ExistsQuery { Field = "searchtitle" }
+                        },
+                        Should = siteFilterSubqueries,
+                        MinimumShouldMatch = 1
+                    },
+                    new BoolQuery
+                    {
+                        Should = new Query[]
+                        {
+                            new MatchQuery("content.es", searchTerm) { Operator = Operator.And, Boost = 1 },
+                            new MatchQuery("searchtitle.es", searchTerm) { Boost = 1 },
+                            new MatchQuery("searchurl.es", searchTerm) { Boost = 1 },
+                            new MatchPhraseQuery("content.es", searchTerm) { Boost = 1 },
+                            new BoolQuery
+                            {
+                                Should = new Query[]
+                                {
+                                    new MatchQuery("metatag.description.es", searchTerm) { Boost = 0.01f }
+                                }
+                            }
+                        }
+                    }
+                },
+                Should = new Query[]
+                {
+                    new TermQuery("type", "text/html") { Boost = 1 }
+                }
+            };
         }
     }
 }

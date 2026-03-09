@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-using Nest;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -14,47 +13,49 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <summary>
         /// Builds the sitewide search query for Spanish CancerGov.
         /// </summary>
-        /// <param name="qcd">A QueryContainer instance</param>
         /// <param name="searchTerm">The term to search for.</param>
         /// <param name="siteFilter">Ignored.</param>
         /// <returns></returns>
-        protected override QueryContainer GetQueryImpl(
-            QueryContainerDescriptor<SiteWideSearchResult> qcd,
+        protected override Query GetQueryImpl(
             string searchTerm,
             IEnumerable<string> siteFilter)
         {
-            // Q: Why didn't you use the overloaded operators instead of a Bool query?
-            // A: Because the overloaded operators promote sub-queries to the level of
-            //    their parents. This syntax is more verbose, but gets the correct structure.
-            qcd.Bool( b => b
-                .Must(
-                    bm => bm.Term(t => t.Field("metatag.content-language").Value("es")),
-                    bm =>
-                        bm.Bool(bmb => bmb
-                            .Should
-                            (
-                                bmbs => bmbs.Match(m => m.Field("content.es").Query(searchTerm).Operator(Operator.And).Boost(1).Verbatim()),
-                                bmbs => bmbs.Match(m => m.Field("searchtitle.es").Query(searchTerm).Boost(1).Verbatim()),
-                                bmbs => bmbs.Match(m => m.Field("searchurl.es").Query(searchTerm).Boost(1).Verbatim()),
-                                bmbs => bmbs.Bool(
-                                    bmbsb => bmbsb.Should(bbs =>
-                                        bbs.Match(m => m.Field("metatag.description.es").Query(searchTerm).Boost(0.01).Verbatim())
-                                    )
-                                )
-                        )
-                    )
-                )
-                .Should(
-                    bs => bs.Term(t => t.Field("type").Value("text/html").Boost(1)),
-                    bs => bs.Match(m => m.Field("metatag.dcterms.type").Query("pdqcancerinfosummary").Boost(1.2)),
-                    bs => bs.Match(m => m.Field("metatag.dcterms.type").Query("cgovcancertypehome").Boost(1.2)),
-                    bs => bs.Bool(
-                        bsb => bsb.Should(bsbs => bsbs.Term(t => t.Field("host").Value("www.cancer.gov").Boost(1)))
-                    )
-                )
-            );
-
-            return qcd;
+            return new BoolQuery
+            {
+                Must = new Query[]
+                {
+                    new TermQuery("metatag.content-language", "es"),
+                    new BoolQuery
+                    {
+                        Should = new Query[]
+                        {
+                            new MatchQuery("content.es", searchTerm) { Operator = Operator.And, Boost = 1 },
+                            new MatchQuery("searchtitle.es", searchTerm) { Boost = 1 },
+                            new MatchQuery("searchurl.es", searchTerm) { Boost = 1 },
+                            new BoolQuery
+                            {
+                                Should = new Query[]
+                                {
+                                    new MatchQuery("metatag.description.es", searchTerm) { Boost = 0.01f }
+                                }
+                            }
+                        }
+                    }
+                },
+                Should = new Query[]
+                {
+                    new TermQuery("type", "text/html") { Boost = 1 },
+                    new MatchQuery("metatag.dcterms.type", "pdqcancerinfosummary") { Boost = 1.2f },
+                    new MatchQuery("metatag.dcterms.type", "cgovcancertypehome") { Boost = 1.2f },
+                    new BoolQuery
+                    {
+                        Should = new Query[]
+                        {
+                            new TermQuery("host", "www.cancer.gov") { Boost = 1 }
+                        }
+                    }
+                }
+            };
         }
     }
 }

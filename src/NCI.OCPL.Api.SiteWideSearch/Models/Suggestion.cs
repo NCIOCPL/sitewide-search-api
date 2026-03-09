@@ -1,4 +1,4 @@
-using Nest;
+using System.Text.Json.Serialization;
 
 namespace NCI.OCPL.Api.SiteWideSearch
 {
@@ -11,7 +11,7 @@ namespace NCI.OCPL.Api.SiteWideSearch
         /// The Backend ID for this item
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "term")]
+        [JsonPropertyName("term")]
         public string Term { get; set; }
 
     }

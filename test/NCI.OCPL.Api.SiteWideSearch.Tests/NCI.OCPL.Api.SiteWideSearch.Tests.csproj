@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp8.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <DebugType>portable</DebugType>
     <AssemblyName>NCI.OCPL.Api.SiteWideSearch.Tests</AssemblyName>
     <PackageId>NCI.OCPL.Api.SiteWideSearch.Tests</PackageId>
@@ -19,16 +19,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="3.0.*" />
+    <PackageReference Include="coverlet.msbuild" Version="6.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.*" />
-    <PackageReference Include="NCI.OCPL.Api.Common" Version="3.0.1" />
-    <PackageReference Include="NCI.OCPL.Api.Common.Testing" Version="3.0.1" />
+    <PackageReference Include="Moq" Version="4.16.*" />
+    <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.*" />
     <PackageReference Include="xunit" Version="2.4.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.*" />
-    <PackageReference Include="Moq" Version="4.13.*" />
-    <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.*" />
-    <PackageReference Include="NEST.JsonNetSerializer" Version="7.9.*" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NCI.OCPL.Api.Common" Version="4.0.0-alpha3" />
+    <PackageReference Include="NCI.OCPL.Api.Common.Testing" Version="4.0.0-alpha3" />
   </ItemGroup>
 
 </Project>

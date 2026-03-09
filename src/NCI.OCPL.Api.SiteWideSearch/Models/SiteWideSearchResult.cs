@@ -1,5 +1,4 @@
-using Nest;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace NCI.OCPL.Api.SiteWideSearch
 {
@@ -13,28 +12,28 @@ namespace NCI.OCPL.Api.SiteWideSearch
         /// The title of this item
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "title")]
+        [JsonPropertyName("title")]
         public string Title { get; set; }
 
         /// <summary>
         /// The URL for this result
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "url")]
+        [JsonPropertyName("url")]
         public string URL { get; set; }
 
         /// <summary>
         /// Gets the content type of this result if there is one
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "metatag.dcterms.type")]
+        [JsonPropertyName("metatag.dcterms.type")]
         public string ContentType { get; set; }
 
         /// <summary>
         /// Gets the description of this result
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "metatag.description")]
+        [JsonPropertyName("metatag.description")]
         [JsonConverter(typeof(MetadataDescriptionConverter))]
         public string Description { get; set; }
 

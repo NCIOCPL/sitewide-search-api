@@ -1,11 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Elasticsearch.Net;
+
+using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Cluster;
+using Elastic.Clients.Elasticsearch.Core.Search;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using NCI.OCPL.Api.Common;
-using Nest;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -14,7 +17,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
     /// </summary>
     public class ESAutosuggestQueryService : IAutosuggestQueryService
     {
-        private readonly IElasticClient _elasticClient;
+        private readonly ElasticsearchClient _elasticClient;
 
         private readonly AutosuggestIndexOptions _indexConfig;
 
@@ -27,7 +30,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="elasticClient">An Elasticsearch client instance.</param>
         /// <param name="config">Configuration/settings for the query.</param>
         /// <param name="logger">The logger</param>
-        public ESAutosuggestQueryService(IElasticClient elasticClient,
+        public ESAutosuggestQueryService(ElasticsearchClient elasticClient,
             IOptions<AutosuggestIndexOptions> config,
             ILogger<ESAutosuggestQueryService> logger)
         {
@@ -47,25 +50,31 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// and the total number of matching terms available.</returns>
         public async Task<Suggestions> Get(string collection, string language, string term, int size)
         {
-            Indices index = Indices.Index(new string[]{this._indexConfig.AliasName});
-            SearchRequest request = new SearchRequest(index)
+            SearchRequest request = new SearchRequest(this._indexConfig.AliasName)
             {
-                // Note the '+' operator for a Boolean's Filter clause.
-                Query = +new TermQuery { Field = "language", Value = language, IsVerbatim = true } &&
-                        new MatchQuery { Field = "term", Query = term, IsVerbatim = true }
-                ,
-                Sort = new List<ISort>
+                Query = new BoolQuery
                 {
-                    new FieldSort { Field = "weight", Order = SortOrder.Descending }
+                    Filter = new Query[]
+                    {
+                        new TermQuery("language", language)
+                    },
+                    Must = new Query[]
+                    {
+                        new MatchQuery("term", term)
+                    }
                 },
-                Source = new SourceFilter
+                Sort = new SortOptions[]
                 {
-                    Includes = new Field[] { new Field("term")}
+                    new FieldSort("weight") { Order = SortOrder.Desc }
                 },
+                Source = new SourceConfig(new SourceFilter
+                {
+                    Includes = new string[] { "term" }
+                }),
                 Size = size
             };
 
-            ISearchResponse<Suggestion> response;
+            SearchResponse<Suggestion> response;
             try
             {
                 response = await _elasticClient.SearchAsync<Suggestion>(request);
@@ -76,7 +85,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                 throw new APIInternalException("Errors occured");
             }
 
-            if (response.IsValid)
+            if (response.IsValidResponse)
             {
                 return new Suggestions(
                     response.Total,
@@ -106,11 +115,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
             // https://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-health.html
             // https://github.com/elastic/elasticsearch/blob/master/rest-api-spec/src/main/resources/rest-api-spec/api/cluster.health.json#L20
 
-            ClusterHealthResponse response;
+            HealthResponse response;
             try
             {
-                Indices index = Indices.Index(new string[] { _indexConfig.AliasName });
-                response = await _elasticClient.Cluster.HealthAsync(index);
+                response = await _elasticClient.Cluster.HealthAsync(new HealthRequest(_indexConfig.AliasName));
             }
             catch(Exception ex)
             {
@@ -118,15 +126,15 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
                 return false;
             }
 
-            if (!response.IsValid)
+            if (!response.IsValidResponse)
             {
                 _logger.LogError($"Error checking ElasticSearch health for index '{_indexConfig.AliasName}'.");
                 _logger.LogError($"Returned debug info: {response.DebugInformation}.");
                 return false;
             }
 
-            if (response.Status != Health.Green
-                && response.Status != Health.Yellow)
+            if (response.Status != HealthStatus.Green
+                && response.Status != HealthStatus.Yellow)
             {
                 _logger.LogError($"Elasticsearch not healthy. Index status is '{response.Status}'.");
                 return false;
