@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Nest;
+using Elastic.Clients.Elasticsearch;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -23,7 +23,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -48,7 +48,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -72,7 +72,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -96,7 +96,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -127,7 +127,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -151,7 +151,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 

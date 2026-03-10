@@ -1,13 +1,11 @@
 using System;
-using System.IO;
 using System.Text;
+using System.Text.Json.Nodes;
 
 using Microsoft.Extensions.Logging.Testing;
 
-using Elasticsearch.Net;
-using Nest;
-using Nest.JsonNetSerializer;
-using Newtonsoft.Json.Linq;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -29,7 +27,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [InlineData(403)]
         public async void GetIsHealthy_ConnectionFailure(int statusCode)
         {
-            IElasticClient client = ElasticTools.GetErrorElasticClient(statusCode);
+            ElasticsearchClient client = ElasticTools.GetErrorElasticClient(statusCode);
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
             bool result = await searchClient.GetIsHealthy();
@@ -42,17 +40,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [Fact]
         public async void GetIsHealthy_BadESReturn()
         {
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.ClusterHealthResponse>((req, res) =>
-            {
-                byte[] byteArray = Encoding.UTF8.GetBytes("\"This is not the server you were looking for.\"");
-                res.Stream = new MemoryStream(byteArray);
-                res.StatusCode = 200;
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                "\"This is not the server you were looking for.\"",
+                200
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
@@ -74,24 +66,23 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string actualMimeType = String.Empty;
             HttpMethod actualMethod = HttpMethod.DELETE; // Something other than the expected value (default is GET).
 
-            JToken actualRequestBody = null;
+            string actualRequestBody = null;
 
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.ClusterHealthResponse>((req, res) =>
-            {
-                res.Stream = MockHealthCheckResponse;
-                res.StatusCode = 200;
-
-                actualURI = req.Uri;
-                actualMimeType = req.RequestMimeType;
-                actualMethod = req.Method;
-                actualRequestBody = conn.GetRequestPost(req);
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
-
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                MockHealthCheckResponse,
+                200,
+                details =>
+                {
+                    actualURI = details.Uri;
+                    actualMimeType = details.ResponseContentType;
+                    actualMethod = details.HttpMethod;
+                    if(details.RequestBodyInBytes != null)
+                    {
+                        actualRequestBody = Encoding.UTF8.GetString(details.RequestBodyInBytes);
+                    }
+                }
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
             // We don't care about the call's result, only the request.
@@ -113,7 +104,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [InlineData("ESHealthData/yellow.json")]
         public async void GetStatus_Healthy(string datafile)
         {
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(datafile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(datafile);
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
             bool status = await searchClient.GetIsHealthy();
@@ -130,7 +121,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [InlineData("ESHealthData/unexpected.json")]   // i.e. "Unexpected color" - ES will throw an exception, this makes sure we handle it.
         public async void GetStatus_Unhealthy(string datafile)
         {
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(datafile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(datafile);
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
             bool status = await searchClient.GetIsHealthy();

@@ -1,9 +1,10 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Nest;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+using Elastic.Clients.Elasticsearch;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -25,7 +26,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config =  MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, NullLogger<ESSearchQueryService>.Instance);
 
@@ -52,7 +53,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "Search.CGov.En.NoResults.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -79,7 +80,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -105,10 +106,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// </summary>
         public async void Check_Metadata_Description_Handling(string testFile, string expectedFile)
         {
-            JObject expected = TestingTools.GetDataFileAsJObject(expectedFile);
+            JsonNode expected = TestingTools.GetDataFileAsJson(expectedFile);
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -123,8 +124,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             );
 
 
-            JToken actual = JToken.Parse(JsonConvert.SerializeObject(results));
-            Assert.Equal(expected, actual, new JTokenEqualityComparer());
+            JsonNode actual = JsonSerializer.SerializeToNode(results);
+            Assert.True(JsonNode.DeepEquals(expected, actual));
         }
 
         [Fact]
@@ -137,7 +138,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 

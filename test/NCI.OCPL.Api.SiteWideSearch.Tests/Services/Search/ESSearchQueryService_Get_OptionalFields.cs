@@ -1,29 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Elasticsearch.Net;
-using Nest;
+using Elastic.Clients.Elasticsearch;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-using Moq;
 using Xunit;
 
 using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.Common.Testing;
 
 /*
- The SearchController class requires an IElasticClient, which is how
+ The SearchController class requires an ElasticsearchClient, which is how
  the controller queries an ElasticSearch server.  As these are unit tests, we
  will not be connecting to a ES server.  So we are using the Moq framework for
- mocking up the methods in an IElasticClient.
+ mocking up the methods in an ElasticsearchClient.
 
 
  The primary method we use is the SearchTemplate method.  This calls an ElasticSearch
@@ -63,7 +55,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string testFile = "Search.CGov.En.AbsentFields.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient =
                 new ESSearchQueryService(client, config, NullLogger<ESSearchQueryService>.Instance);

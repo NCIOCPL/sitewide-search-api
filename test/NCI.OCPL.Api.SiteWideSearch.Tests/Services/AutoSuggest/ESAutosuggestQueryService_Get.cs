@@ -1,13 +1,11 @@
 using System;
 using System.Text;
-using System.IO;
+using System.Text.Json.Nodes;
 
 using Microsoft.Extensions.Logging.Testing;
 
-using Elasticsearch.Net;
-using Nest;
-using Nest.JsonNetSerializer;
-using Newtonsoft.Json.Linq;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -30,15 +28,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [InlineData(403)]
         public async void Get_ConnectionFailure(int statusCode)
         {
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<Suggestion>>((req, res) =>
-            {
-                res.StatusCode = statusCode;
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                ElastcsearchTestingTools.MockEmptyResponseString, // Don't care about the response for this test.
+                statusCode
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, MockAutoSuggestOptions, new NullLogger<ESAutosuggestQueryService>());
 
@@ -55,17 +49,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [Fact]
         public async void Get_BadESReturn()
         {
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<Suggestion>>((req, res) =>
-            {
-                byte[] byteArray = Encoding.UTF8.GetBytes("\"This is not the server you were looking for.\"");
-                res.Stream = new MemoryStream(byteArray);
-                res.StatusCode = 200;
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                "\"This is not the server you were looking for.\"",
+                200
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, MockAutoSuggestOptions, new NullLogger<ESAutosuggestQueryService>());
 
@@ -92,7 +80,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string expectedPath = "/autosg/_search";
             string expectedContentType = "application/json";
             HttpMethod expectedMethod = HttpMethod.POST;
-            JObject expectedBody = JObject.Parse(@"
+            JsonNode expectedBody = JsonNode.Parse(@"
 {
     ""query"": {
                 ""bool"": {
@@ -109,25 +97,20 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string esContentType = String.Empty;
             HttpMethod esMethod = HttpMethod.DELETE; // Basically, something other than the expected value.
 
-            JToken requestBody = null;
+            string requestBody = null;
 
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<Suggestion>>((req, res) =>
-            {
-                // We don't really care about the response for this test.
-                res.Stream = ElastcsearchTestingTools.MockEmptyResponse;
-                res.StatusCode = 200;
-
-                esURI = req.Uri;
-                esContentType = req.RequestMimeType;
-                esMethod = req.Method;
-                requestBody = conn.GetRequestPost(req);
-            });
-            // The URI does not matter, an InMemoryConnection never requests from the server.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                ElastcsearchTestingTools.MockEmptyResponseString,
+                200,
+                details =>
+                {
+                    esURI = details.Uri;
+                    esContentType = details.ResponseContentType;
+                    esMethod = details.HttpMethod;
+                    requestBody = Encoding.UTF8.GetString(details.RequestBodyInBytes);
+                }
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
 
             IAutosuggestQueryService autoSuggestClient = new ESAutosuggestQueryService(
@@ -148,7 +131,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             Assert.Equal(expectedPath, esURI.AbsolutePath);
             Assert.Equal(expectedContentType, esContentType);
             Assert.Equal(expectedMethod, esMethod);
-            Assert.Equal(expectedBody, requestBody, new JTokenEqualityComparer());
+            Assert.True(JsonNode.DeepEquals(expectedBody, JsonNode.Parse(requestBody)));
         }
 
     }
