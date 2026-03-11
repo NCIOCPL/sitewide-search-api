@@ -26,9 +26,9 @@
                                 { "term": { "metatag.content-language": { "value": "en" } } },
                                 {
                                     "bool": {
-                                        "must_not": [
-                                            { "exists": { "field": "metatag.content-language" } }
-                                        ]
+                                        "must_not": {
+                                            "exists": { "field": "metatag.content-language" }
+                                        }
                                     }
                                 }
                             ]
@@ -37,10 +37,10 @@
                     {
                         "bool": {
                             "should": [
-                                { "match": { "content": { "operator": "and", "query": "chicken", "boost": 1.0 } } },
-                                { "match_phrase": { "content": { "query": "chicken", "boost": 1.0 } } },
-                                { "match_phrase": { "searchtitle": { "query": "chicken", "boost": 1.0 } } },
-                                { "match": { "searchtitle": { "query": "chicken", "boost": 1.0 } } },
+                                { "match": { "content": { "operator": "and", "query": "chicken", "boost": 1 } } },
+                                { "match_phrase": { "content": { "query": "chicken", "boost": 1 } } },
+                                { "match_phrase": { "searchtitle": { "query": "chicken", "boost": 1 } } },
+                                { "match": { "searchtitle": { "query": "chicken", "boost": 1 } } },
                                 {
                                     "bool": {
                                         "should": [
@@ -54,14 +54,14 @@
                     }
                 ],
                 "should": [
-                    { "term": { "type": { "value": "text/html", "boost": 4.0 } } },
+                    { "term": { "type": { "value": "text/html", "boost": 4 } } },
                     { "match": { "metatag.dcterms.type": { "query": "pdqcancerinfosummary", "boost": 1.2 } } },
                     { "match": { "metatag.dcterms.type": { "query": "cgovcancertypehome", "boost": 1.2 } } },
                     {
                         "bool": {
-                            "should": [
-                                { "term": { "host": { "value": "www.cancer.gov", "boost": 10.0 } } }
-                            ]
+                            "should": {
+                                "term": { "host": { "value": "www.cancer.gov", "boost": 10 } }
+                            }
                         }
                     }
                 ]

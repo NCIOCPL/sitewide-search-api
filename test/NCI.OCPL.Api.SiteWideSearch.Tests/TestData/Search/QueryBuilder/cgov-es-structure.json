@@ -5,14 +5,14 @@
             {
                 "bool": {
                     "should": [
-                        { "match": { "content.es": { "operator": "and", "query": "pollo", "boost": 1.0 } } },
-                        { "match": { "searchtitle.es": { "query": "pollo", "boost": 1.0 } } },
-                        { "match": { "searchurl.es": { "query": "pollo", "boost": 1.0 } } },
+                        { "match": { "content.es": { "operator": "and", "query": "pollo", "boost": 1 } } },
+                        { "match": { "searchtitle.es": { "query": "pollo", "boost": 1 } } },
+                        { "match": { "searchurl.es": { "query": "pollo", "boost": 1 } } },
                         {
                             "bool": {
-                                "should": [
-                                    { "match": { "metatag.description.es": { "query": "pollo", "boost": 0.01 } } }
-                                ]
+                                "should": {
+                                    "match": { "metatag.description.es": { "query": "pollo", "boost": 0.01 } }
+                                }
                             }
                         }
                     ]
@@ -20,14 +20,14 @@
             }
         ],
         "should": [
-            { "term": { "type": { "value": "text/html", "boost": 1.0 } } },
+            { "term": { "type": { "value": "text/html", "boost": 1 } } },
             { "match": { "metatag.dcterms.type": { "query": "pdqcancerinfosummary", "boost": 1.2 } } },
             { "match": { "metatag.dcterms.type": { "query": "cgovcancertypehome", "boost": 1.2 } } },
             {
                 "bool": {
-                    "should": [
-                        { "term": { "host": { "value": "www.cancer.gov", "boost": 1.0 } } }
-                    ]
+                    "should": {
+                        "term": { "host": { "value": "www.cancer.gov", "boost": 1 } }
+                    }
                 }
             }
         ]
