@@ -1,7 +1,3 @@
-/*
-    Excerpt of CancerGov results for the word cancer, with an array of results
-    for the metadata description (Elasticsearch 5 style).
-*/
 {
   "took": 67,
   "timed_out": false,

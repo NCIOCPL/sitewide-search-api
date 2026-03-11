@@ -1,7 +1,3 @@
-/*
-    Parsed version of Search.CGov.En.MetadataSingle.json.
-    Only one value for metata.description field should be present.
-*/
 {
   "Results": [
     {

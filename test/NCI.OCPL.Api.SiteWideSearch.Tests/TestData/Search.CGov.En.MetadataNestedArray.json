@@ -1,7 +1,3 @@
-/*
-    Excerpt of CancerGov results for the term "James Cherry" with an array of results
-    for the metadata description (Elasticsearch 7 style).
-*/
 {
   "took": 24,
   "timed_out": false,
