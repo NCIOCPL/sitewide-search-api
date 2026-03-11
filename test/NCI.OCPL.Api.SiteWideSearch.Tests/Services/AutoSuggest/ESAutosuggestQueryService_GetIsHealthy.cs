@@ -85,8 +85,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, MockAutoSuggestOptions, new NullLogger<ESAutosuggestQueryService>());
 
-            // We don't care about the call's result, only the request.
-            await autosuggestClient.GetIsHealthy();
+            bool result = await autosuggestClient.GetIsHealthy();
+            Assert.True(result);
             Assert.Equal(expectedMimeType, actualMimeType);
             Assert.Equal(expectedUrl, actualURI.AbsoluteUri);
             Assert.Equal(expectedMethod, actualMethod);
