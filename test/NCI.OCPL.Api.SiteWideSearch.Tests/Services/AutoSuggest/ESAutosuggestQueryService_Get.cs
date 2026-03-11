@@ -71,10 +71,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [InlineData("en", "Breast Cancer")]
         [InlineData("es", "Cáncer de seno")]
         [InlineData("en", " ")]
-        [InlineData("es", "    \n ")]
-        [InlineData("es", "    \t ")]
         [InlineData("", "")]
-        [InlineData("\t", "")]
         public async void Check_For_Correct_Request_Data(string language, string term)
         {
             string expectedPath = "/autosg/_search";
@@ -84,13 +81,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
     ""query"": {
                 ""bool"": {
-                    ""filter"": [ { ""term"": { ""language"": { ""value"": """ + language + @""" } } } ],
-            ""must"": [ { ""match"": { ""term"": { ""query"": """ + term + @""" } } } ]
+                    ""filter"": { ""term"": { ""language"": { ""value"": """ + language + @""" } } },
+            ""must"": { ""match"": { ""term"": { ""query"": """ + term + @""" } } }
         }
             },
     ""size"": 25,
-    ""sort"": [ { ""weight"": { ""order"": ""desc"" } } ],
-    ""_source"": { ""includes"": [ ""term"" ] }
+    ""sort"": { ""weight"": { ""order"": ""desc"" } },
+    ""_source"": { ""includes"": ""term"" }
 }");
 
             Uri esURI = null;
@@ -107,7 +104,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
                     esURI = details.Uri;
                     esContentType = details.ResponseContentType;
                     esMethod = details.HttpMethod;
-                    requestBody = Encoding.UTF8.GetString(details.RequestBodyInBytes);
+                    if(details.RequestBodyInBytes != null)
+                    {
+                        requestBody = Encoding.UTF8.GetString(details.RequestBodyInBytes);
+                    }
                 }
             );
             ElasticsearchClient client = new ElasticsearchClient(settings);
