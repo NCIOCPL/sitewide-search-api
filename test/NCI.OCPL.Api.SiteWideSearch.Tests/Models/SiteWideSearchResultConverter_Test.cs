@@ -168,6 +168,77 @@ namespace NCI.OCPL.Api.SiteWideSearch.Models.Tests
         }
 
         /// <summary>
+        /// Verify that ContentType is deserialized correctly when metatag.dcterms.type is present.
+        /// </summary>
+        [Fact]
+        public void ContentType_WhenPresent_IsDeserialized()
+        {
+            string data = @"
+                {
+                    ""title"":                  ""test title"",
+                    ""url"":                    ""http://nowhere"",
+                    ""metatag.description"":    ""simple description"",
+                    ""metatag.dcterms.type"":   ""test content type""
+                }";
+
+            SiteWideSearchResult actual = JsonSerializer.Deserialize<SiteWideSearchResult>(data);
+
+            Assert.Equal("test content type", actual.ContentType);
+        }
+
+        /// <summary>
+        /// Verify that ContentType is null when metatag.dcterms.type is absent.
+        /// </summary>
+        [Fact]
+        public void ContentType_WhenAbsent_IsNull()
+        {
+            string data = @"
+                {
+                    ""title"":                  ""test title"",
+                    ""url"":                    ""http://nowhere"",
+                    ""metatag.description"":    ""simple description""
+                }";
+
+            SiteWideSearchResult actual = JsonSerializer.Deserialize<SiteWideSearchResult>(data);
+
+            Assert.Null(actual.ContentType);
+        }
+
+        /// <summary>
+        /// Verify that Title is null when the title key is absent.
+        /// </summary>
+        [Fact]
+        public void Title_WhenAbsent_IsNull()
+        {
+            string data = @"
+                {
+                    ""url"":                    ""http://nowhere"",
+                    ""metatag.description"":    ""simple description""
+                }";
+
+            SiteWideSearchResult actual = JsonSerializer.Deserialize<SiteWideSearchResult>(data);
+
+            Assert.Null(actual.Title);
+        }
+
+        /// <summary>
+        /// Verify that URL is null when the url key is absent.
+        /// </summary>
+        [Fact]
+        public void URL_WhenAbsent_IsNull()
+        {
+            string data = @"
+                {
+                    ""title"":                  ""test title"",
+                    ""metatag.description"":    ""simple description""
+                }";
+
+            SiteWideSearchResult actual = JsonSerializer.Deserialize<SiteWideSearchResult>(data);
+
+            Assert.Null(actual.URL);
+        }
+
+        /// <summary>
         /// Verify that serialization uses the C# property names when no naming policy is set.
         /// </summary>
         [Fact]

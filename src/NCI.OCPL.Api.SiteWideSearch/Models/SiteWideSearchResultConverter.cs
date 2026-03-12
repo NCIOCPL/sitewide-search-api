@@ -22,14 +22,16 @@ class SiteWideSearchResultConverter : JsonConverter<SiteWideSearchResult>
         using (JsonDocument jsonDoc = JsonDocument.ParseValue(ref reader))
         {
             var root = jsonDoc.RootElement;
-            string description = ReadDescription(root);
+
+            string GetString(string propertyName) =>
+                root.TryGetProperty(propertyName, out JsonElement element) ? element.GetString() : null;
 
             return new SiteWideSearchResult
             {
-                Title = root.GetProperty("title").GetString(),
-                URL = root.GetProperty("url").GetString(),
-                ContentType = root.GetProperty("metatag.dcterms.type").GetString(),
-                Description = description
+                Title = GetString("title"),
+                URL = GetString("url"),
+                ContentType = GetString("metatag.dcterms.type"),
+                Description = ReadDescription(root)
             };
         }
     }
