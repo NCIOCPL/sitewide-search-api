@@ -145,6 +145,24 @@ namespace NCI.OCPL.Api.SiteWideSearch.Models.Tests
         }
 
         /// <summary>
+        /// Verify that Description is empty when the metatag.description key is absent.
+        /// </summary>
+        [Fact]
+        public void Description_WhenAbsent_IsNull()
+        {
+            string data = @"
+                {
+                    ""title"":                  ""test title"",
+                    ""url"":                    ""http://nowhere"",
+                    ""metatag.dcterms.type"":   ""test content type""
+                }";
+
+            SiteWideSearchResult actual = JsonSerializer.Deserialize<SiteWideSearchResult>(data);
+
+            Assert.Null(actual.Description);
+        }
+
+        /// <summary>
         /// Verify an exception is thrown when the description is an unexpected type.
         /// </summary>
         [Fact]

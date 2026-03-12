@@ -45,7 +45,8 @@ class SiteWideSearchResultConverter : JsonConverter<SiteWideSearchResult>
     /// <returns>The first description string found, or an empty string if the array is empty.</returns>
     private static string ReadDescription(JsonElement root)
     {
-        var element = root.GetProperty("metatag.description");
+        if (!root.TryGetProperty("metatag.description", out JsonElement element))
+            return null;
 
         switch (element.ValueKind)
         {
