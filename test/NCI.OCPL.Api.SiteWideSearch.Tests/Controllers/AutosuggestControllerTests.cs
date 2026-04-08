@@ -4,6 +4,7 @@ using Moq;
 using Xunit;
 
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
+using System.Threading.Tasks;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 {
@@ -65,11 +66,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
                     new Suggestion(){Term = "breast cancer symptoms"}
                 });
 
-        [Fact]
         /// <summary>
         /// Test that the list of results exists.
         /// </summary>
-        public async void Check_Results_Exist()
+        [Fact]
+        public async Task Check_Results_Exist()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -92,12 +93,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.NotEmpty(results.Results);
         }
 
-        [Fact]
         /// <summary>
         /// Test that the search results at arbitrary offsets
         /// in the collection are present
         /// </summary>
-        public async void Check_Results_Present()
+        [Fact]
+        public async Task Check_Results_Present()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -120,11 +121,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.All(results.Results, item => Assert.NotNull(item));
         }
 
-        [Fact]
         /// <summary>
         /// Test that the list of returned results has the right number of items.
         /// </summary>
-        public async void Check_Result_Count()
+        [Fact]
+        public async Task Check_Result_Count()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -148,11 +149,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         }
 
 
-        [Fact]
         /// <summary>
         /// Test that the first result contains the expected string.
         /// </summary>
-        public async void Check_First_Result()
+        [Fact]
+        public async Task Check_First_Result()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -175,18 +176,18 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.Equal("breast cancer", results.Results[0].Term);
         }
 
-        [Theory]
-        [InlineData(0, "breast cancer")]
-        [InlineData(3, "metastatic breast cancer")]
-        [InlineData(17, "breast cancer risk assessment")]
-        [InlineData(19, "breast cancer symptoms")]
         /// <summary>
         /// Test that the suggested search strings from arbitrary offsets
         /// in the collection have the correct values
         /// </summary>
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
-        public async void Check_Arbitrary_Result(int offset, string expectedTerm)
+        [Theory]
+        [InlineData(0, "breast cancer")]
+        [InlineData(3, "metastatic breast cancer")]
+        [InlineData(17, "breast cancer risk assessment")]
+        [InlineData(19, "breast cancer symptoms")]
+        public async Task Check_Arbitrary_Result(int offset, string expectedTerm)
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -209,11 +210,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
             Assert.Equal(expectedTerm, results.Results[offset].Term);
         }
 
-        [Fact]
         /// <summary>
         /// Test for Breast Cancer search string and ensures Total is mapped correctly.
         /// </summary>
-        public async void Has_Correct_Total()
+        [Fact]
+        public async Task Has_Correct_Total()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(

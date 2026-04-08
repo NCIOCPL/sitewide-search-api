@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging.Testing;
 
@@ -24,7 +25,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
         [Fact]
-        public async void Handle_Failed_Query()
+        public async Task Handle_Failed_Query()
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
@@ -129,6 +130,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         }
 
 
+        /// <summary>
+        /// Verify that controller returns no results when no search text is specified.
+        /// </summary>
+        /// <param name="termValue">A string the text to search for.</param>
         [Theory]
         [InlineData(null)]
         [InlineData("")] // Empty string
@@ -136,10 +141,6 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         [InlineData("\t")]
         [InlineData("\n")]
         [InlineData("\r")]
-        /// <summary>
-        /// Verify that controller returns no results when no search text is specified.
-        /// </summary>
-        /// <param name="termValue">A string the text to search for.</param>
         public async void Get_EmptyTerm_ReturnsNull(String termValue)
         {
             // No setup, because we don't expect anything to actually be invoked.

@@ -1,10 +1,11 @@
 using System;
 using System.IO;
+using System.Text.Json.Nodes;
 using Xunit;
 
-using Elasticsearch.Net;
-using Nest;
-using Newtonsoft.Json.Linq;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.QueryDsl;
+using Elastic.Transport.Extensions;
 
 using NCI.OCPL.Api.Common.Testing;
 
@@ -22,7 +23,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         [InlineData(typeof(ESDocSpanishSitewideSearchQueryBuilder), "pollo", new string[]{"www.cancer.gov/pediatric-adult-rare-tumor/espanol","www.cancer.gov/rare-brain-spine-tumor/espanol"}, "doc-es-multisite-structure.json")]
         public void Structure_Is_Correct(Type builderType, string searchTerm, string[] siteFilter, string expectedFile)
         {
-            JToken expected = TestingTools.GetDataFileAsJObject($"Search/QueryBuilder/{expectedFile}");
+            JsonNode expected = TestingTools.GetDataFileAsJson($"Search/QueryBuilder/{expectedFile}");
 
             // Instantiate the builder.
             ISiteWideSearchQueryBuilder builder =
@@ -30,15 +31,15 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
 
             var qcd = builder.GetQuery(searchTerm, siteFilter);
 
-            IElasticClient client = new ElasticClient();
+            ElasticsearchClient client = new ElasticsearchClient();
 
-            string json = client.RequestResponseSerializer.SerializeToString((QueryContainer)qcd);
+            string json = client.RequestResponseSerializer.SerializeToString((Query)qcd);
 
             SaveActualOutput(json, Path.Join(nameof(SitewideSearchQueryBuilder_Test), nameof(Structure_Is_Correct)), expectedFile);
 
-            JToken actual = JToken.Parse(json);
+            JsonNode actual = JsonNode.Parse(json);
 
-            Assert.Equal(expected, actual, new JTokenEqualityComparer());
+            Assert.True(JsonNode.DeepEquals(expected, actual));
         }
 
         private void SaveActualOutput(string data, string testName, string fileName)

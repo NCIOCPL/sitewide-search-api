@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging.Testing;
 
@@ -19,7 +20,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// Verify the GetStatus method responds correctly when the service outright fails.
         /// </summary>
         [Fact]
-        public async void GetStatus_ServiceFail()
+        public async Task GetStatus_ServiceFail()
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
@@ -43,7 +44,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// Verify the GetStatus method responds correctly when the service reports the service is healthy.
         /// </summary>
         [Fact]
-        public async void GetStatus_Healthy()
+        public async Task GetStatus_Healthy()
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
@@ -64,7 +65,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// Verify the GetStatus method responds correctly when the service reports as not healthy.
         /// </summary>
         [Fact]
-        public async void GetStatus_Unhealthy()
+        public async Task GetStatus_Unhealthy()
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(

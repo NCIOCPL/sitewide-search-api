@@ -1,16 +1,3 @@
-/*
-    Suggestions based on the keyword "breast"
-
-    POST /autosg/terms/_search/template
-    {
-        "file" : "autosg_suggest_cgov_en",
-        "params" : {
-            "searchstring" : "breast",
-            "my_size" : 20
-        }
-    }
-*/
-
 {
    "took": 28,
    "timed_out": false,
