@@ -1,27 +1,25 @@
 {
     "bool": {
-        "filter": [
-            {
-                "bool": {
-                    "should": [
-                        { "term": {"metatag.content-language": { "value": "en" } } },
-                        { "bool": {
-                                "must_not": [
-                                    { "exists": { "field": "metatag.content-language" } }
-                                ]
+        "filter": {
+            "bool": {
+                "should": [
+                    { "term": {"metatag.content-language": { "value": "en" } } },
+                    { "bool": {
+                            "must_not": {
+                                "exists": { "field": "metatag.content-language" }
                             }
                         }
-                    ]
-                }
+                    }
+                ]
             }
-        ],
+        },
         "must": [
             {
                 "bool": {
                     "minimum_should_match": 1,
-                    "must": [
-                        { "exists": { "field": "searchtitle" } }
-                    ],
+                    "must": {
+                        "exists": { "field": "searchtitle" }
+                    },
                     "should": [
                         { "prefix": { "searchurl.raw": { "value": "dceg.cancer.gov" } } },
                         { "prefix": { "searchurl.raw": { "value": "www.cancer.gov/connect-prevention-study" } } }
@@ -31,25 +29,23 @@
             {
                 "bool": {
                     "should": [
-                        { "match": { "content": { "operator": "and", "query": "chicken", "boost": 2.0 } } },
-                        { "match": { "searchtitle": { "query": "chicken", "boost": 2.0 } } },
-                        { "match": { "searchurl": { "query": "chicken", "boost": 3.0 } } },
-                        { "match_phrase": { "content": { "query": "chicken", "boost": 3.0 } } },
+                        { "match": { "content": { "operator": "and", "query": "chicken", "boost": 2 } } },
+                        { "match": { "searchtitle": { "query": "chicken", "boost": 2 } } },
+                        { "match": { "searchurl": { "query": "chicken", "boost": 3 } } },
+                        { "match_phrase": { "content": { "query": "chicken", "boost": 3 } } },
                         {
                             "bool": {
-                                "should": [
-                                    { "match": { "metatag.description": { "query": "chicken", "boost": 0.01 } } }
-                                ]
+                                "should": {
+                                    "match": { "metatag.description": { "query": "chicken", "boost": 0.01 } }
+                                }
                             }
                         }
                     ]
                 }
             }
         ],
-        "should": [
-            {
-                "term": { "type": { "value": "text/html", "boost": 2.0 } }
-            }
-        ]
+        "should": {
+            "term": { "type": { "value": "text/html", "boost": 2 } }
+        }
     }
 }

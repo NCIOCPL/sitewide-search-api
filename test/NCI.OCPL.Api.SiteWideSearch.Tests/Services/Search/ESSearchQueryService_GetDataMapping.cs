@@ -1,9 +1,11 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Nest;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+using Elastic.Clients.Elasticsearch;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -20,12 +22,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Test for Breast Cancer term and ensures TotalResults is mapped correctly.
         /// </summary>
-        public async void Has_Correct_Total()
+        public async Task Has_Correct_Total()
         {
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config =  MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, NullLogger<ESSearchQueryService>.Instance);
 
@@ -47,12 +49,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// Test that search mapping returns correct number of results for an empty result set.
         /// (And also that it doesn't explode!)
         /// </summary>
-        public async void No_Results_Has_Correct_Total()
+        public async Task No_Results_Has_Correct_Total()
         {
             string testFile = "Search.CGov.En.NoResults.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -74,12 +76,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// Test that the search results at arbitrary offsets
         /// in the collection are present
         /// </summary>
-        public async void Check_Results_Present()
+        public async Task Check_Results_Present()
         {
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -103,12 +105,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// Test that the metadata description field is handled correctly when
         /// it contains an array of values instead of a single string.
         /// </summary>
-        public async void Check_Metadata_Description_Handling(string testFile, string expectedFile)
+        public async Task Check_Metadata_Description_Handling(string testFile, string expectedFile)
         {
-            JObject expected = TestingTools.GetDataFileAsJObject(expectedFile);
+            JsonNode expected = TestingTools.GetDataFileAsJson(expectedFile);
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 
@@ -123,8 +125,8 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             );
 
 
-            JToken actual = JToken.Parse(JsonConvert.SerializeObject(results));
-            Assert.Equal(expected, actual, new JTokenEqualityComparer());
+            JsonNode actual = JsonSerializer.SerializeToNode(results);
+            Assert.True(JsonNode.DeepEquals(expected, actual));
         }
 
         [Fact]
@@ -132,12 +134,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// Test that the search results at arbitrary offsets
         /// in the collection are present
         /// </summary>
-        public async void Check_RequiredField_Present()
+        public async Task Check_RequiredField_Present()
         {
             string testFile = "Search.CGov.En.BreastCancer.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, config, new NullLogger<ESSearchQueryService>());
 

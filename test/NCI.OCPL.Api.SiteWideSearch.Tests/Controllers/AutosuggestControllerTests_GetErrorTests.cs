@@ -9,6 +9,7 @@ using Xunit;
 using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.Common.Testing;
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
+using System.Threading.Tasks;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 {
@@ -19,14 +20,14 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
     public class AutosuggestControllerTests_GetErrorTests
     {
 
-        [Fact]
         /// <summary>
         /// Verify that controller throws the correct exception when the
         /// ES client encounters an error.
         /// </summary>
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
-        public async void Handle_Failed_Query()
+        [Fact]
+        public async Task Handle_Failed_Query()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -53,6 +54,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         }
 
 
+        /// <summary>
+        /// Verify that controller throws the correct exception when no collection is specified.
+        /// </summary>
+        /// <param name="collectionValue">A string specifying the collection to search.</param>
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -60,11 +65,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [InlineData("\t")]
         [InlineData("\n")]
         [InlineData("\r")]
-        /// <summary>
-        /// Verify that controller throws the correct exception when no collection is specified.
-        /// </summary>
-        /// <param name="collectionValue">A string specifying the collection to search.</param>
-        public async void Get_EmptyCollection_ReturnsError(String collectionValue)
+        public async Task Get_EmptyCollection_ReturnsError(String collectionValue)
         {
             // No setup, because we don't expect anything to actually be invoked.
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
@@ -89,6 +90,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         }
 
 
+        /// <summary>
+        /// Verify that controller throws the correct exception when an invalid language   is specified.
+        /// </summary>
+        /// <param name="termValue">A string the text to search for.</param>
         [Theory]
         [InlineData("english")] // Language that "sounds" right but isn't.
         [InlineData("spanish")]
@@ -98,11 +103,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [InlineData("\t")]
         [InlineData("\n")]
         [InlineData("\r")]
-        /// <summary>
-        /// Verify that controller throws the correct exception when an invalid language   is specified.
-        /// </summary>
-        /// <param name="termValue">A string the text to search for.</param>
-        public async void Get_InvalidLanguage_ReturnsError(string language)
+        public async Task Get_InvalidLanguage_ReturnsError(string language)
         {
             // No setup, because we don't expect anything to actually be invoked.
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
@@ -127,6 +128,10 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         }
 
 
+        /// <summary>
+        /// Verify that controller throws the correct exception when no search text is specified.
+        /// </summary>
+        /// <param name="termValue">A string the text to search for.</param>
         [Theory]
         [InlineData(null)]
         [InlineData("")] // Empty string
@@ -134,11 +139,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         [InlineData("\t")]
         [InlineData("\n")]
         [InlineData("\r")]
-        /// <summary>
-        /// Verify that controller throws the correct exception when no search text is specified.
-        /// </summary>
-        /// <param name="termValue">A string the text to search for.</param>
-        public async void Get_EmptyTerm_ReturnsError(String termValue)
+        public async Task Get_EmptyTerm_ReturnsError(String termValue)
         {
             // No setup, because we don't expect anything to actually be invoked.
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();

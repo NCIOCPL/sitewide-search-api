@@ -1,17 +1,16 @@
 using System;
-using System.IO;
 using System.Text;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging.Testing;
 
-using Elasticsearch.Net;
-using Nest;
-using Nest.JsonNetSerializer;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Xunit;
 
 using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.Common.Testing;
-using Newtonsoft.Json.Linq;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
@@ -28,17 +27,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         [Theory]
         [InlineData(500)]
         [InlineData(403)]
-        public async void Get_ConnectionFailure(int statusCode)
+        public async Task Get_ConnectionFailure(int statusCode)
         {
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<SiteWideSearchResults>>((req, res) =>
-            {
-                res.StatusCode = statusCode;
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                ElasticsearchTestingTools.MockEmptyResponseString, // Don't care about the response for this test.
+                statusCode
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
@@ -53,19 +48,13 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// elasticsearch returns an invalid result.
         /// </summary>
         [Fact]
-        public async void Get_BadESReturn()
+        public async Task Get_BadESReturn()
         {
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<SiteWideSearchResults>>((req, res) =>
-            {
-                byte[] byteArray = Encoding.UTF8.GetBytes("\"This is not the server you were looking for.\"");
-                res.Stream = new MemoryStream(byteArray);
-                res.StatusCode = 200;
-            });
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                "\"This is not the server you were looking for.\"",
+                200
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ESSearchQueryService searchClient = new ESSearchQueryService(client, MockSearchOptions, new NullLogger<ESSearchQueryService>());
 
@@ -84,12 +73,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Verify that the request sent to ES for a single term is being set up correctly.
         /// </summary>
-        public async void Check_For_Correct_Request_Data(string requestedCollection, string requestedLanguage, int requestedFrom, int requestedSize)
+        public async Task Check_For_Correct_Request_Data(string requestedCollection, string requestedLanguage, int requestedFrom, int requestedSize)
         {
             string expectedMimeType = "application/json";
             string expectedUrl = "/cgov/_search";
             HttpMethod expectedMethod = HttpMethod.POST;
-            JToken expectedSort = JToken.Parse(@"
+            JsonNode expectedSort = JsonNode.Parse(@"
                 [
                     {""_score"": {}},
                     {""url"": {}}
@@ -101,25 +90,23 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             string actualMimeType = String.Empty;
             HttpMethod actualMethod = HttpMethod.DELETE; // Something other than the expected value (default is GET).
 
-            JToken requestBody = null;
+            string requestBody = null;
 
-            ElasticsearchInterceptingConnection conn = new ElasticsearchInterceptingConnection();
-            conn.RegisterRequestHandlerForType<Nest.SearchResponse<SiteWideSearchResult>>((req, res) =>
-            {
-                requestBody = conn.GetRequestPost(req);
-
-                actualURI = req.Uri;
-                actualMimeType = req.RequestMimeType;
-                actualMethod = req.Method;
-
-                res.StatusCode = 200;
-                res.Stream = ElastcsearchTestingTools.MockEmptyResponse;
-            });
-
-            // The URL doesn't matter, it won't be used.
-            var pool = new SingleNodeConnectionPool(new Uri("http://localhost:9200"));
-            var connectionSettings = new ConnectionSettings(pool, conn, sourceSerializer: JsonNetSerializer.Default);
-            IElasticClient client = new ElasticClient(connectionSettings);
+            var settings = TestingElasticsearchClientSettingsFactory.Create(
+                ElasticsearchTestingTools.MockEmptyResponseString,
+                200,
+                details =>
+                {
+                    actualURI = details.Uri;
+                    actualMimeType = details.ResponseContentType;
+                    actualMethod = details.HttpMethod;
+                    if(details.RequestBodyInBytes != null)
+                    {
+                        requestBody = Encoding.UTF8.GetString(details.RequestBodyInBytes);
+                    }
+                }
+            );
+            ElasticsearchClient client = new ElasticsearchClient(settings);
 
             ISearchQueryService searchClient = new ESSearchQueryService(
                 client,
@@ -143,10 +130,11 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
             Assert.Equal(expectedMethod, actualMethod);
 
             // The structure of the actual query is tested in the SitewideSearchQueryBuilder_Test class.
-            Assert.Equal(requestedSize, ((int)requestBody["size"]));
-            Assert.Equal(requestedFrom, (int)requestBody["from"]);
-            Assert.Equal(expectedSort, requestBody["sort"], new JTokenEqualityComparer());
-            Assert.True((bool)requestBody["track_total_hits"]);
+            JsonNode body = JsonNode.Parse(requestBody);
+            Assert.Equal(requestedSize, (int)body["size"]);
+            Assert.Equal(requestedFrom, (int)body["from"]);
+            Assert.True(JsonNode.DeepEquals(expectedSort, body["sort"]));
+            Assert.True((bool)body["track_total_hits"]);
         }
 
     }

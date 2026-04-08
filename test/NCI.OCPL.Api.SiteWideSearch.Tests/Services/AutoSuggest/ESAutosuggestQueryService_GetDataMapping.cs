@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Nest;
+using Elastic.Clients.Elasticsearch;
 using Xunit;
 
 using NCI.OCPL.Api.Common.Testing;
@@ -18,12 +20,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Test that the list of results exists.
         /// </summary>
-        public async void Check_Results_Exist()
+        public async Task Check_Results_Exist()
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -43,12 +45,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// Test that the search results at arbitrary offsets
         /// in the collection are present
         /// </summary>
-        public async void Check_Results_Present()
+        public async Task Check_Results_Present()
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -67,12 +69,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Test that the list of returned results has the right number of items.
         /// </summary>
-        public async void Check_Result_Count()
+        public async Task Check_Result_Count()
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -91,12 +93,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Test that the first result contains the expected string.
         /// </summary>
-        public async void Check_First_Result()
+        public async Task Check_First_Result()
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -122,12 +124,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// </summary>
         /// <param name="offset">Offset into the list of results of the item to check.</param>
         /// <param name="expectedTerm">The expected term text</param>
-        public async void Check_Arbitrary_Result(int offset, string expectedTerm)
+        public async Task Check_Arbitrary_Result(int offset, string expectedTerm)
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 
@@ -146,12 +148,12 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// <summary>
         /// Test for Breast Cancer search string and ensures Total is mapped correctly.
         /// </summary>
-        public async void Has_Correct_Total()
+        public async Task Has_Correct_Total()
         {
             string testFile = "AutoSuggest.CGov.En.BreastCancer.json";
 
             IOptions<AutosuggestIndexOptions> config = MockAutoSuggestOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESAutosuggestQueryService autosuggestClient = new ESAutosuggestQueryService(client, config, new NullLogger<ESAutosuggestQueryService>());
 

@@ -1,8 +1,6 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
 
-using Nest;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services
 {
@@ -19,52 +17,44 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services
         /// <param name="searchTerm">The term to search for.</param>
         /// <param name="siteFilter">The site search results should be limited to.</param>
         /// <returns></returns>
-        protected override QueryContainer GetQueryImpl(
-            QueryContainerDescriptor<SiteWideSearchResult> qcd,
+        protected override Query GetQueryImpl(
+            QueryDescriptor qcd,
             string searchTerm,
             IEnumerable<string> siteFilter)
         {
             // Get the collection of subqueries for restricting the results to specific sites.
-            QueryContainer[] siteFilterSubqueries = GetSiteFilterSubQueries(siteFilter);
+            Query[] siteFilterSubqueries = GetSiteFilterSubQueries(siteFilter);
 
-            // Q: Why didn't you use the overloaded operators instead of a Bool query?
-            // A: Because the overloaded operators promote sub-queries to the level of
-            //    their parents. This syntax is more verbose, but gets the correct structure.
-            qcd
-            .Bool( b => b
-                .Filter( bf =>
-                    (
-                        bf.Term(t => t.Field("metatag.content-language").Value("es"))
-                    )
+            return qcd.Bool(b => b
+                .Filter(
+                    f => f.Term(t => t.Field("metatag.content-language").Value("es"))
                 )
-                .Must( bm => (
-                        bm.Bool(bsq => bsq
-                            .Must(m => m.Exists(e => e.Field("searchtitle")))
-                            .Should(siteFilterSubqueries)
-                            .MinimumShouldMatch(1)
+                .Must(
+                    m => m.Bool(siteBool => siteBool
+                        .Must(
+                            sm => sm.Exists(e => e.Field("searchtitle"))
                         )
+                        .Should(siteFilterSubqueries)
+                        .MinimumShouldMatch(1)
                     ),
-                    bm => bm
-                        .Bool( b => b
-                            .Should(
-                            bs => bm.Match(m => m.Field("content.es").Query(searchTerm).Operator(Operator.And).Boost(1).Verbatim() ),
-                            bs => bm.Match(m => m.Field("searchtitle.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs => bm.Match(m => m.Field("searchurl.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs => bm.MatchPhrase(mp => mp.Field("content.es").Query(searchTerm).Boost(1).Verbatim()),
-                            bs =>  bs.Bool( bb =>
-                                bb.Should( bbs =>
-                                    bbs.Match(m => m.Field("metatag.description.es").Query(searchTerm).Boost(0.01).Verbatim())
+                    m => m.Bool(contentBool => contentBool
+                        .Should(
+                            s => s.Match(ma => ma.Field("content.es").Query(searchTerm).Operator(Operator.And).Boost(1)),
+                            s => s.Match(ma => ma.Field("searchtitle.es").Query(searchTerm).Boost(1)),
+                            s => s.Match(ma => ma.Field("searchurl.es").Query(searchTerm).Boost(1)),
+                            s => s.MatchPhrase(mp => mp.Field("content.es").Query(searchTerm).Boost(1)),
+                            s => s.Bool(descBool => descBool
+                                .Should(
+                                    ds => ds.Match(ma => ma.Field("metatag.description.es").Query(searchTerm).Boost(0.01f))
                                 )
                             )
                         )
                     )
                 )
                 .Should(
-                    bs => bs.Term(t => t.Field("type").Value("text/html").Boost(1))
+                    s => s.Term(t => t.Field("type").Value("text/html").Boost(1))
                 )
             );
-
-            return qcd;
         }
     }
 }

@@ -1,5 +1,3 @@
-using Nest;
-
 namespace NCI.OCPL.Api.SiteWideSearch
 {
     /// <summary>
@@ -11,7 +9,6 @@ namespace NCI.OCPL.Api.SiteWideSearch
         /// The Backend ID for this item
         /// </summary>
         /// <returns></returns>
-        [Text(Name = "term")]
         public string Term { get; set; }
 
     }

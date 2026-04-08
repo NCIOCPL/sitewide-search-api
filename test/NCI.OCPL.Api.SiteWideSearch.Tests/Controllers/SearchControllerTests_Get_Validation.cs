@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging.Testing;
 
 using Moq;
 using Xunit;
 
-using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
@@ -22,7 +21,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// Verify that controller changes negative "from" and "size" values to non-negative.
         /// </summary>
         [Fact]
-        public async void Handle_Negative_Inputs()
+        public async Task Handle_Negative_Inputs()
         {
             const int inputFrom = -10;
             const int inputSize = -70;
@@ -53,7 +52,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         [Theory]
         [InlineData(0, 10)]
         [InlineData(200, 50)]
-        public async void Does_Not_Alter_Valid_Inputs(int inputFrom, int inputSize)
+        public async Task Does_Not_Alter_Valid_Inputs(int inputFrom, int inputSize)
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(
@@ -90,7 +89,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.SearchControllerTests
         /// Verify the controller works correctly with varying site filters.
         /// </summary>
         [Theory, MemberData(nameof(EmptySiteList))]
-        public async void Default_For_Empty_Site_list(string[] inputSiteList, string[] expectedSiteList)
+        public async Task Default_For_Empty_Site_list(string[] inputSiteList, string[] expectedSiteList)
         {
             Mock<ISearchQueryService> querySvc = new Mock<ISearchQueryService>();
             querySvc.Setup(

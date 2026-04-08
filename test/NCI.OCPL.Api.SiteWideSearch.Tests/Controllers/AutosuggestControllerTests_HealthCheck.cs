@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.Logging.Testing;
+﻿using System;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging.Testing;
+
+using Moq;
 using Xunit;
 
-
-using NCI.OCPL.Api.SiteWideSearch.Controllers;
 using NCI.OCPL.Api.Common;
-using Moq;
-using System;
+using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
 {
@@ -18,7 +20,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify the GetStatus method responds correctly when the service outright fails.
         /// </summary>
         [Fact]
-        public async void GetStatus_ServiceFail()
+        public async Task GetStatus_ServiceFail()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -42,7 +44,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify the GetStatus method responds correctly when the service reports the service is healthy.
         /// </summary>
         [Fact]
-        public async void GetStatus_Healthy()
+        public async Task GetStatus_Healthy()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(
@@ -63,7 +65,7 @@ namespace NCI.OCPL.Api.SiteWideSearch.Tests.AutoSuggestControllerTests
         /// Verify the GetStatus method responds correctly when the service reports as not healthy.
         /// </summary>
         [Fact]
-        public async void GetStatus_Unhealthy()
+        public async Task GetStatus_Unhealthy()
         {
             Mock<IAutosuggestQueryService> querySvc = new Mock<IAutosuggestQueryService>();
             querySvc.Setup(

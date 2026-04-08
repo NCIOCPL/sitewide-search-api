@@ -1,29 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
-using Elasticsearch.Net;
-using Nest;
+using Elastic.Clients.Elasticsearch;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-using Moq;
 using Xunit;
 
-using NCI.OCPL.Api.Common;
 using NCI.OCPL.Api.Common.Testing;
 
 /*
- The SearchController class requires an IElasticClient, which is how
+ The SearchController class requires an ElasticsearchClient, which is how
  the controller queries an ElasticSearch server.  As these are unit tests, we
  will not be connecting to a ES server.  So we are using the Moq framework for
- mocking up the methods in an IElasticClient.
+ mocking up the methods in an ElasticsearchClient.
 
 
  The primary method we use is the SearchTemplate method.  This calls an ElasticSearch
@@ -37,7 +29,6 @@ using NCI.OCPL.Api.Common.Testing;
  funky looking.
 */
 
-using NCI.OCPL.Api.SiteWideSearch.Controllers;
 
 namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
 {
@@ -55,15 +46,15 @@ namespace NCI.OCPL.Api.SiteWideSearch.Services.Tests
         /// </summary>
         /// <param name="offset">Offset into testFile's set of search results where we know
         /// <see cref="fieldName" /> to be missing..</param>
-        /// <param name="nullTest">A test function of tupe Func&lt;SiteWideSearchResult, Boolean&gt; which checks
-        /// wheter a specific field in the selected result is null.</param>
+        /// <param name="nullTest">A test function of type Func&lt;SiteWideSearchResult, Boolean&gt; which checks
+        /// whether a specific field in the selected result is null.</param>
         /// <param name="fieldName">Name of the field being tested, used for display purposes.</param>
-        public async void Optional_Field_Is_Null(int offset, Object nullTest, string fieldName)
+        public async Task Optional_Field_Is_Null(int offset, Object nullTest, string fieldName)
         {
             string testFile = "Search.CGov.En.AbsentFields.json";
 
             IOptions<SearchIndexOptions> config = MockSearchOptions;
-            IElasticClient client = ElasticTools.GetInMemoryElasticClient(testFile);
+            ElasticsearchClient client = ElasticTools.GetInMemoryElasticClient(testFile);
 
             ESSearchQueryService searchClient =
                 new ESSearchQueryService(client, config, NullLogger<ESSearchQueryService>.Instance);
