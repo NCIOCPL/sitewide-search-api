@@ -6,8 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Elasticsearch doesn't strictly follow semantic versioning; the client MUST
-          be locked to the same version as the server. -->
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.19.12" />
     <PackageReference Include="NCI.OCPL.Api.Common" Version="4.0.0" />
   </ItemGroup>
